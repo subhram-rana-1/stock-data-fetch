@@ -2,6 +2,7 @@ import time
 from kiteconnect import KiteTicker
 from datetime import datetime
 from common.constants import nifty50_instrument_token, data_fetch_finish_time
+from common.entities import TickerData
 from common.kite_client import new_kite_websocket_client
 
 
@@ -16,11 +17,13 @@ def close_websocket_connection(ws, code, reason):
 
 def save_nifty_ltp_to_db(ws, ticks):
     """TODO: save in DB"""
-    print('NIFTY : inserting into DB')
+    stock_data: TickerData = ticks[0]
+    current_nifty_point = stock_data['last_price']
+    print(f'NIFTY : inserting into DB: {current_nifty_point}')
 
 
 def start_fetching_nifty_price_and_inserting_into_db():
-    kws: KiteTicker = new_kite_websocket_client()
+    kws: KiteTicker = new_kite_websocket_client('NIFTY')
 
     kws.on_connect = subscribe_to_stock_instrument
     kws.on_ticks = save_nifty_ltp_to_db

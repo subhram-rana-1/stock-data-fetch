@@ -1,5 +1,5 @@
 # About
-* This fetches continuous data for NIFTY, BANKNIFTY in live market and store in mysql database
+* This fetches continuous data for NIFTY, BANKNIFTY from Zerodha in live market and store in mysql database
 
 # Instruction for running application
 * Start the application just before 9:15 am as this is the market opening time

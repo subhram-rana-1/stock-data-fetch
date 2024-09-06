@@ -37,7 +37,7 @@ class KiteConnectClient:
         return cls._instance
 
 
-def new_kite_websocket_client() -> KiteTicker:
+def new_kite_websocket_client(market: str) -> KiteTicker:
     if configs.ACCESS_TOKEN is None:
         err_msg = ('access_token is not initialised. Please connect to kite connect first with'
                    ' "get_kite_connect_client()" function, and then try to create websocket client')
@@ -49,7 +49,7 @@ def new_kite_websocket_client() -> KiteTicker:
         access_token=configs.ACCESS_TOKEN,
     )
 
-    print('\nkite websocket client creation successful !!! ')
+    print(f'\n [{market}]: kite websocket client creation successful !!!')
 
     return kws
 
