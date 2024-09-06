@@ -20,12 +20,12 @@ def save_nifty_ltp_to_db(ws, ticks):
     stock_data: TickerData = ticks[0]
     current_nifty_point: float = stock_data['last_price']
 
-    nifty_price: NiftyPrice = NiftyPrice(
-        date=datetime.now().date(),
-        timestamp=datetime.now().time(),
-        price=current_nifty_point,
-    )
-    nifty_price.save()
+    # nifty_price: NiftyPrice = NiftyPrice(
+    #     date=datetime.now().date(),
+    #     timestamp=datetime.now().time(),
+    #     price=current_nifty_point,
+    # )
+    # nifty_price.save()
 
     print(f'NIFTY : inserting into DB: {current_nifty_point}')
 
