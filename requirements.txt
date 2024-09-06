@@ -1,1 +1,2 @@
 kiteconnect
+Django==5.0.0
