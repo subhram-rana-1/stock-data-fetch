@@ -1,2 +1,3 @@
 kiteconnect
-Django==5.0.0
+Django==5.1
+pytz

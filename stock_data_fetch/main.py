@@ -5,8 +5,8 @@ from common.kite_client import KiteConnectClient
 from kiteconnect import KiteConnect
 from datetime import datetime
 
-from stock_data_fetch.banknifty import start_fetching_banknifty_price_and_inserting_into_db
-from stock_data_fetch.nifty import start_fetching_nifty_price_and_inserting_into_db
+from stock_data_fetch.banknifty_price_fetch import start_fetching_banknifty_price_and_inserting_into_db
+from stock_data_fetch.nifty_price_fetch import start_fetching_nifty_price_and_inserting_into_db
 
 
 def async_start_fetching_nifty_price_data(kc: KiteConnect):

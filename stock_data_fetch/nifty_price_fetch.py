@@ -1,7 +1,7 @@
 import time
 from kiteconnect import KiteTicker
 from datetime import datetime
-from common.constants import nifty50_instrument_token, data_fetch_finish_time
+from common.constants import nifty50_instrument_token, data_fetch_finish_time, IST_timezone
 from common.entities import TickerData
 from common.kite_client import new_kite_websocket_client
 from price_app.models import NiftyPrice
@@ -20,12 +20,12 @@ def save_nifty_ltp_to_db(ws, ticks):
     stock_data: TickerData = ticks[0]
     current_nifty_point: float = stock_data['last_price']
 
-    # nifty_price: NiftyPrice = NiftyPrice(
-    #     date=datetime.now().date(),
-    #     timestamp=datetime.now().time(),
-    #     price=current_nifty_point,
-    # )
-    # nifty_price.save()
+    nifty_price: NiftyPrice = NiftyPrice(
+        date=datetime.now().date(),
+        timestamp=datetime.now().astimezone(IST_timezone).time(),
+        price=current_nifty_point,
+    )
+    nifty_price.save()
 
     print(f'NIFTY : inserting into DB: {current_nifty_point}')
 
