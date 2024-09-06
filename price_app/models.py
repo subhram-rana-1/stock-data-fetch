@@ -15,7 +15,7 @@ class NiftyPrice(models.Model):
 
 class BankNiftyPrice(models.Model):
     date = models.DateField(null=False)
-    timestamp = models.DateTimeField(null=False)
+    timestamp = models.TimeField(null=False)
     price = models.FloatField(null=False)
 
     class Meta:
