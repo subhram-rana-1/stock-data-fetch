@@ -4,6 +4,7 @@ from datetime import datetime
 from common.constants import nifty50_instrument_token, data_fetch_finish_time
 from common.entities import TickerData
 from common.kite_client import new_kite_websocket_client
+from price_app.models import NiftyPrice
 
 
 def subscribe_to_stock_instrument(ws, response):
@@ -16,9 +17,16 @@ def close_websocket_connection(ws, code, reason):
 
 
 def save_nifty_ltp_to_db(ws, ticks):
-    """TODO: save in DB"""
     stock_data: TickerData = ticks[0]
-    current_nifty_point = stock_data['last_price']
+    current_nifty_point: float = stock_data['last_price']
+
+    nifty_price: NiftyPrice = NiftyPrice(
+        date=datetime.now().date(),
+        timestamp=datetime.now().time(),
+        price=current_nifty_point,
+    )
+    nifty_price.save()
+
     print(f'NIFTY : inserting into DB: {current_nifty_point}')
 
 

@@ -24,10 +24,6 @@ def async_start_fetching_banknifty_price_data(kc: KiteConnect):
 
 
 def main():
-    time_to_sleep = 3
-    print(f'[MAIN] : main function will start in {time_to_sleep} seconds ...')
-    time.sleep(time_to_sleep)  # time to let django server start ...
-
     print(f'[MAIN] : Started data fetch main function ...')
 
     kc: KiteConnect = KiteConnectClient()
