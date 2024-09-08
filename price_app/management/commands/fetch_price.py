@@ -14,5 +14,4 @@ def async_start_fetch_price():
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        """Spawns all kafka consumers in inventory app"""
         async_start_fetch_price()
