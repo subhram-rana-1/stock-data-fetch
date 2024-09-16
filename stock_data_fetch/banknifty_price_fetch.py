@@ -2,9 +2,10 @@ import time
 from kiteconnect import KiteTicker
 from datetime import datetime
 from common.constants import data_fetch_finish_time, banknifty_instrument_token, data_fetch_start_time, \
-    market_opening_time, market_closing_time
+    market_opening_time, market_closing_time, IST_timezone
 from common.entities import TickerData
 from common.kite_client import new_kite_websocket_client
+from price_app.models import BankNiftyPrice
 
 
 def subscribe_to_banknifty_instrument(ws, response):
@@ -20,6 +21,13 @@ def save_banknifty_ltp_to_db(ws, ticks):
     """TODO: save in DB"""
     stock_data: TickerData = ticks[0]
     current_nifty_point = stock_data['last_price']
+
+    nifty_price: BankNiftyPrice = BankNiftyPrice(
+        timestamp=datetime.now().astimezone(IST_timezone),
+        price=current_nifty_point,
+    )
+    nifty_price.save()
+
     print(f'BANKNIFTY : inserting into DB: {current_nifty_point}')
 
 

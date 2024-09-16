@@ -6,11 +6,6 @@ from common.constants import nifty50_instrument_token, data_fetch_finish_time, I
 from common.entities import TickerData
 from common.kite_client import new_kite_websocket_client
 from price_app.models import NiftyPrice
-import logging
-
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 
 def subscribe_to_nifty50_instrument(ws, response):
@@ -27,13 +22,12 @@ def save_nifty_ltp_to_db(ws, ticks):
     current_nifty_point: float = stock_data['last_price']
 
     nifty_price: NiftyPrice = NiftyPrice(
-        date=datetime.now().date(),
-        timestamp=datetime.now().astimezone(IST_timezone).time(),
+        timestamp=datetime.now().astimezone(IST_timezone),
         price=current_nifty_point,
     )
     nifty_price.save()
 
-    logger.debug(f'NIFTY : inserting into DB: {current_nifty_point}')
+    print(f'NIFTY : inserting into DB: {current_nifty_point}')
 
 
 def start_fetching_nifty_price_and_inserting_into_db():
