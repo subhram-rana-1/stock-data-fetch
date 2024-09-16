@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.0/dist/chartjs-plugin-zoom.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #chartContainer {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+        }
+        canvas {
+            width: 100% !important;
+            height: 400px !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="chartContainer">
+        <canvas id="priceChart"></canvas>
+    </div>
+
+    <script>
+        // Function to fetch data from the API
+        async function fetchData() {
+            // Return hardcoded data for testing
+            return {
+                "market": "NIFTY",
+                "prices": [
+                    {
+                        "dt": "2024-09-11",
+                        "tm": "11:12:22",
+                        "price": 25456.43
+                    },
+                    {
+                        "dt": "2024-09-11",
+                        "tm": "11:12:23",
+                        "price": 25454.43
+                    }
+                ]
+            }
+        }
+
+        // Function to initialize and render the chart
+        async function renderChart() {
+            const data = await fetchData();
+
+            // Convert timestamps to Date objects and format data for Chart.js
+            const formattedData = data.prices.map(item => ({
+                x: new Date(`${item.dt}T${item.tm}`),
+                y: item.price
+            }));
+
+            const ctx = document.getElementById('priceChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Price',
+                        data: formattedData,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'second',
+                                tooltipFormat: 'll HH:mm:ss'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Timestamp'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Price'
+                            }
+                        }
+                    },
+                    plugins: {
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'xy',
+                            },
+                            zoom: {
+                                enabled: true,
+                                mode: 'xy',
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render the chart when the page loads
+        window.onload = renderChart;
+    </script>
+</body>
+</html>
