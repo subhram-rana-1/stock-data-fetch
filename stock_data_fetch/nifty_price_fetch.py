@@ -2,7 +2,7 @@ import time
 from kiteconnect import KiteTicker
 from datetime import datetime
 from common.constants import nifty50_instrument_token, data_fetch_finish_time, IST_timezone, data_fetch_start_time, \
-    market_opening_time
+    market_opening_time, market_closing_time
 from common.entities import TickerData
 from common.kite_client import new_kite_websocket_client
 from price_app.models import NiftyPrice
