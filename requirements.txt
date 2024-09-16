@@ -1,3 +1,4 @@
 kiteconnect
 Django==5.1
 pytz
+mysqlclient

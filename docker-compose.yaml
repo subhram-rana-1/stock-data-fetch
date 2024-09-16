@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+#  djano-application:
+#    build: .
+#    command: ./startup.sh
+#    volumes:
+#      - .:/app
+#    ports:
+#      - "8888:8888"
+#    environment:
+#      - DEBUG=True
+#    depends_on:
+#      - db-mysql
+
+  db-mysql:
+    image: mysql:8.0
+    volumes:
+      - /Users/Subhram/my-projects/db-mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: market_price_data
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+      MYSQL_ROOT_PASSWORD: pass
+    ports:
+      - "3304:3306"
+
+volumes:
+  postgres_data:
