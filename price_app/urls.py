@@ -4,7 +4,7 @@ from price_app.handlers import fetch_price
 
 urlpatterns = [
     path(
-        'price/{str:market_name}',
+        'price',
         fetch_price,
         name='fetch-price',
     ),

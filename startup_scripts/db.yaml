@@ -1,18 +1,6 @@
 version: '3.8'
 
 services:
-#  djano-application:
-#    build: .
-#    command: ./startup.sh
-#    volumes:
-#      - .:/app
-#    ports:
-#      - "8888:8888"
-#    environment:
-#      - DEBUG=True
-#    depends_on:
-#      - db-mysql
-
   db-mysql:
     image: mysql:8.0
     volumes:

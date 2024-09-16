@@ -37,14 +37,15 @@ def fetch_price_data(
     """TODO"""
 
 
-def fetch_price(request: http.HttpRequest, market_name: str):
+def fetch_price(request: http.HttpRequest):
+    market_name = MarketType(request.GET['market'])
+
     from_date = datetime.strptime(request.GET['from_date'], date_format_string).date()
     to_date = datetime.strptime(request.GET['to_date'], date_format_string).date()
 
     from_time = datetime.strptime(request.GET['from_time'], time_format_string).time()
     to_time = datetime.strptime(request.GET['to_time'], time_format_string).time()
 
-    # fetch from DB
     price_data: dict = fetch_price_data(MarketType(market_name), from_date, to_date, from_time, to_time)
 
     return JsonResponse(price_data_to_dict(price_data))

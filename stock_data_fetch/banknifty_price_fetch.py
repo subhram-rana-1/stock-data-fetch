@@ -1,7 +1,8 @@
 import time
 from kiteconnect import KiteTicker
 from datetime import datetime
-from common.constants import data_fetch_finish_time, banknifty_instrument_token
+from common.constants import data_fetch_finish_time, banknifty_instrument_token, data_fetch_start_time, \
+    market_opening_time, market_closing_time
 from common.entities import TickerData
 from common.kite_client import new_kite_websocket_client
 
@@ -29,9 +30,12 @@ def start_fetching_banknifty_price_and_inserting_into_db():
     kws.on_ticks = save_banknifty_ltp_to_db
     kws.on_close = close_websocket_connection
 
+    while datetime.now().time() <= min(data_fetch_start_time, market_opening_time):
+        time.sleep(5)
+
     kws.connect(threaded=True)
 
-    while datetime.now().time() <= data_fetch_finish_time:
+    while datetime.now().time() <= min(data_fetch_finish_time, market_closing_time):
         time.sleep(1)
 
     kws.close()

@@ -1,10 +1,16 @@
 import time
 from kiteconnect import KiteTicker
 from datetime import datetime
-from common.constants import nifty50_instrument_token, data_fetch_finish_time, IST_timezone
+from common.constants import nifty50_instrument_token, data_fetch_finish_time, IST_timezone, data_fetch_start_time, \
+    market_opening_time
 from common.entities import TickerData
 from common.kite_client import new_kite_websocket_client
 from price_app.models import NiftyPrice
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 def subscribe_to_nifty50_instrument(ws, response):
@@ -27,7 +33,7 @@ def save_nifty_ltp_to_db(ws, ticks):
     )
     nifty_price.save()
 
-    print(f'NIFTY : inserting into DB: {current_nifty_point}')
+    logger.debug(f'NIFTY : inserting into DB: {current_nifty_point}')
 
 
 def start_fetching_nifty_price_and_inserting_into_db():
@@ -37,9 +43,12 @@ def start_fetching_nifty_price_and_inserting_into_db():
     kws.on_ticks = save_nifty_ltp_to_db
     kws.on_close = close_websocket_connection
 
+    while datetime.now().time() <= min(data_fetch_start_time, market_opening_time):
+        time.sleep(5)
+
     kws.connect(threaded=True)
 
-    while datetime.now().time() <= data_fetch_finish_time:
+    while datetime.now().time() <= min(data_fetch_finish_time, market_closing_time):
         time.sleep(1)
 
     kws.close()
