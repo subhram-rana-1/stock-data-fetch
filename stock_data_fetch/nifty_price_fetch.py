@@ -7,7 +7,7 @@ from common.kite_client import new_kite_websocket_client
 from price_app.models import NiftyPrice
 
 
-def subscribe_to_stock_instrument(ws, response):
+def subscribe_to_nifty50_instrument(ws, response):
     ws.subscribe([nifty50_instrument_token])
     ws.set_mode(ws.MODE_LTP, [nifty50_instrument_token])
 
@@ -33,7 +33,7 @@ def save_nifty_ltp_to_db(ws, ticks):
 def start_fetching_nifty_price_and_inserting_into_db():
     kws: KiteTicker = new_kite_websocket_client('NIFTY')
 
-    kws.on_connect = subscribe_to_stock_instrument
+    kws.on_connect = subscribe_to_nifty50_instrument
     kws.on_ticks = save_nifty_ltp_to_db
     kws.on_close = close_websocket_connection
 

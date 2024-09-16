@@ -34,8 +34,3 @@ def main():
     async_start_fetching_nifty_price_data(kc)
     time.sleep(0.5)  # sleeping to instantiate web socket without any 'ReactorAlreadyRunning' exception
     async_start_fetching_banknifty_price_data(kc)
-
-    while datetime.now().time() <= data_fetch_finish_time:
-        time.sleep(3)
-
-    print(f'[MAIN] : Completed data fetch main function !!!')
