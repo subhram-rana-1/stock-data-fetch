@@ -2,7 +2,7 @@ import pytz
 from datetime import time
 
 market_opening_time = time(9, 15)
-market_closing_time = time(16, 30)
+market_closing_time = time(15, 30)
 
 data_fetch_start_time = market_opening_time
 data_fetch_finish_time = market_closing_time

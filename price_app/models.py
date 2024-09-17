@@ -3,7 +3,7 @@ from django.db import models
 
 class Price(models.Model):
     timestamp = models.DateTimeField(null=False, db_index=True)
-    price = models.FloatField(null=False)
+    price = models.FloatField(null=False, default=0)
 
     class Meta:
         abstract = True
@@ -17,6 +17,6 @@ class NiftyPrice(Price):
         db_table = 'nifty_price'
 
 
-class BankNiftyPrice(models.Model):
+class BankNiftyPrice(Price):
     class Meta:
         db_table = 'bank_nifty_price'

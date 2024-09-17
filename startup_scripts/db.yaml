@@ -12,6 +12,3 @@ services:
       MYSQL_ROOT_PASSWORD: pass
     ports:
       - "3304:3306"
-
-volumes:
-  postgres_data:
