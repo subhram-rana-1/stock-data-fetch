@@ -1,6 +1,6 @@
 {
-  "market": "NIFTY",
-  "prices": [
+  "market_name": "NIFTY",
+  "price_data": [
     {
       "dt": "2024-09-11",
       "tm": "11:12:22",
