@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from typing import TypedDict, List
 
 from common.constants import date_format_string, time_format_string
-from price_app.models import BankNiftyPrice
+from price_app.models import BankNiftyPrice, NiftyPrice
 from stock_data_fetch.enums import MarketType
 
 
@@ -44,7 +44,16 @@ def fetch_nifty_price_data(
         start_timestamp: datetime,
         to_timestamp: datetime,
 ) -> PriceData:
-    ...
+    nifty_prices: List[NiftyPrice] = NiftyPrice.objects.filter(
+        timestamp__gte=start_timestamp,
+        timestamp__lte=to_timestamp,
+    )
+
+    return PriceData(
+        market_name=MarketType.NIFTY,
+        price_list=[get_price_data_per_tick(price_details.timestamp, price_details.price)
+                    for price_details in nifty_prices]
+    )
 
 
 def fetch_banknifty_price_data(
