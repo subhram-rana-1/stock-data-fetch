@@ -2,7 +2,7 @@ from django import http
 from datetime import datetime, date, time, timedelta
 from django.http import JsonResponse
 from typing import TypedDict, List
-
+from django.views.decorators.csrf import csrf_exempt
 from common.constants import date_format_string, time_format_string
 from price_app.models import BankNiftyPrice, NiftyPrice
 from stock_data_fetch.enums import MarketType
@@ -90,6 +90,7 @@ def fetch_price_data(
     raise Exception(f'invalid market type: {market_type}')
 
 
+@csrf_exempt
 def fetch_price(request: http.HttpRequest):
     market_name = MarketType(request.GET['market'])
 

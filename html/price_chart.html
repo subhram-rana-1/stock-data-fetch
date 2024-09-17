@@ -29,27 +29,40 @@
     <script>
         // Function to fetch data from the API
         async function fetchData() {
-            // Return hardcoded data for testing
-            return {
-                "market": "NIFTY",
-                "prices": [
-                    {
-                        "dt": "2024-09-11",
-                        "tm": "11:12:22",
-                        "price": 25456.43
+            const url = 'http://localhost:8888/api/price';
+            const params = new URLSearchParams({
+                market: 'BANKNIFTY',
+                from_date: '2024-09-17',
+                to_date: '2024-09-17',
+                from_time: '13:21:00',
+                to_time: '13:25:00'
+            });
+
+            try {
+                const response = await fetch(`${url}?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'User-Agent': 'insomnia/10.0.0',
+                        // 'Content-Type': 'application/json' // Uncomment if needed for request body (not needed for GET request)
                     },
-                    {
-                        "dt": "2024-09-11",
-                        "tm": "11:12:23",
-                        "price": 25454.43
-                    }
-                ]
+                    // credentials: 'include' // Uncomment if you need to send cookies with the request
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json(); // or response.text() if the response is not JSON
+                console.log(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
             }
         }
 
         // Function to initialize and render the chart
         async function renderChart() {
             const data = await fetchData();
+            console.log('api data: ', data)
 
             // Convert timestamps to Date objects and format data for Chart.js
             const formattedData = data.prices.map(item => ({
