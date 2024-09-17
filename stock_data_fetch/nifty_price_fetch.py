@@ -23,7 +23,7 @@ def save_nifty_ltp_to_db(ws, ticks):
     current_nifty_point: float = stock_data['last_price']
 
     nifty_price: NiftyPrice = NiftyPrice(
-        timestamp=current_ist_timestamp()+timedelta(hours=5, minutes=30),
+        timestamp=current_ist_timestamp(),
         price=current_nifty_point,
     )
     nifty_price.save()

@@ -24,7 +24,7 @@ def save_banknifty_ltp_to_db(ws, ticks):
     current_banknifty_point = stock_data['last_price']
 
     banknifty_price: BankNiftyPrice = BankNiftyPrice(
-        timestamp=current_ist_timestamp()+timedelta(hours=5, minutes=30),
+        timestamp=current_ist_timestamp(),
         price=current_banknifty_point,
     )
     banknifty_price.save()
