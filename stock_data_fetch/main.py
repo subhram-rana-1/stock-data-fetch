@@ -1,13 +1,11 @@
 import threading
 import time
-import pytz
 from common.constants import data_fetch_start_time, data_fetch_finish_time, IST_timezone
 from common.kite_client import KiteConnectClient
 from kiteconnect import KiteConnect
-from datetime import datetime
 
+from common.utils import now_ist
 from stock_data_fetch.banknifty_price_fetch import start_fetching_banknifty_price_and_inserting_into_db
-from stock_data_fetch.common import to_ist_time
 from stock_data_fetch.nifty_price_fetch import start_fetching_nifty_price_and_inserting_into_db
 
 
@@ -30,7 +28,7 @@ def main():
 
     kc: KiteConnect = KiteConnectClient()
 
-    while to_ist_time(datetime.now()) < data_fetch_start_time:
+    while now_ist() < data_fetch_start_time:
         time.sleep(3)
 
     async_start_fetching_nifty_price_data(kc)

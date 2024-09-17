@@ -1,12 +1,12 @@
 import time
+from datetime import timedelta
 from kiteconnect import KiteTicker
-from datetime import datetime
 from common.constants import data_fetch_finish_time, banknifty_instrument_token, data_fetch_start_time, \
-    market_opening_time, market_closing_time, IST_timezone
+    market_opening_time, market_closing_time
 from common.entities import TickerData
 from common.kite_client import new_kite_websocket_client
+from common.utils import now_ist, current_ist_timestamp
 from price_app.models import BankNiftyPrice
-from stock_data_fetch.common import to_ist_time, to_ist_timestamp
 
 
 def subscribe_to_banknifty_instrument(ws, response):
@@ -24,12 +24,12 @@ def save_banknifty_ltp_to_db(ws, ticks):
     current_banknifty_point = stock_data['last_price']
 
     banknifty_price: BankNiftyPrice = BankNiftyPrice(
-        timestamp=to_ist_timestamp(datetime.now()),
+        timestamp=current_ist_timestamp()+timedelta(hours=5, minutes=30),
         price=current_banknifty_point,
     )
     banknifty_price.save()
 
-    print(f'BANKNIFTY : inserting into DB: {current_banknifty_point}')
+    print(f'BANKNIFTY : {current_banknifty_point}')
 
 
 def start_fetching_banknifty_price_and_inserting_into_db():
@@ -39,13 +39,13 @@ def start_fetching_banknifty_price_and_inserting_into_db():
     kws.on_ticks = save_banknifty_ltp_to_db
     kws.on_close = close_websocket_connection
 
-    while to_ist_time(datetime.now()) <= min(data_fetch_start_time, market_opening_time):
+    while now_ist() <= min(data_fetch_start_time, market_opening_time):
         time.sleep(5)
 
     print('starting bank nifty price async fetching process........')
     kws.connect(threaded=True)
 
-    while to_ist_time(datetime.now()) <= min(data_fetch_finish_time, market_closing_time):
+    while now_ist() <= min(data_fetch_finish_time, market_closing_time):
         time.sleep(1)
 
     kws.close()
