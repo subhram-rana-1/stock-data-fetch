@@ -1,6 +1,6 @@
 import threading
 import time
-from common.constants import data_fetch_start_time, data_fetch_finish_time, IST_timezone
+from common.constants import data_fetch_start_time
 from common.kite_client import KiteConnectClient
 from kiteconnect import KiteConnect
 
