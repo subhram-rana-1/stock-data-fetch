@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Price Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@1.27.0/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.8.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0/dist/chartjs-adapter-luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.0/dist/chartjs-plugin-zoom.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #chartContainer {
+            width: 100%;
+            margin: auto;
+            padding: 20px;
+        }
+        canvas {
+            width: 100% !important;
+            height: 50% !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="chartContainer">
+        <canvas id="priceChart"></canvas>
+    </div>
+
+    <script>
+        // Function to fetch data from the API
+        async function fetchData() {
+            const url = "http://localhost:8888/api/price"; // Ensure this endpoint is running
+            const params = new URLSearchParams({
+                market: "BANKNIFTY",
+                from_date: "2024-09-18",
+                to_date: "2024-09-18",
+                from_time: "12:45:00",
+                to_time: "12:45:20",
+            });
+
+            try {
+                const response = await fetch(`${url}?${params.toString()}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        function get_chart_object(formattedData, formattedData2) {
+            return {
+                type: "line",
+                data: {
+                    datasets: [
+                        {
+                            label: "Price",
+                            data: formattedData,
+                            borderColor: "rgba(75, 192, 192, 1)",
+                            backgroundColor: "rgba(75, 192, 192, 0.2)",
+                            fill: false,
+                        },
+                        {
+                            label: "Price + 10",
+                            data: formattedData2,
+                            borderColor: "rgba(111, 100, 180, 1)",
+                            backgroundColor: "rgba(111, 100, 180, 0.2)",
+                            fill: false,
+                        },
+                    ],
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: "time",
+                            time: {
+                                unit: "second",
+                                tooltipFormat: "ll HH:mm:ss",
+                            },
+                            title: {
+                                display: true,
+                                text: "Timestamp",
+                            },
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: "Price",
+                            },
+                        },
+                    },
+                    plugins: {
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: "xy",
+                            },
+                            zoom: {
+                                wheel: {
+                                    enabled: true,
+                                },
+                                mode: "xy", // Change to 'xy' for zooming on both axes
+                            },
+                        },
+                    },
+                },
+            };
+        }
+
+        async function renderChart() {
+            const data = await fetchData();
+            if (!data) return; // Ensure data is valid
+
+            const formattedData = data.price_data.map((item) => ({
+                x: new Date(`${item.dt}T${item.tm}`),
+                y: item.price,
+            }));
+            const formattedData2 = data.price_data.map((item) => ({
+                x: new Date(`${item.dt}T${item.tm}`),
+                y: item.price + 10,
+            }));
+            const ctx = document.getElementById("priceChart").getContext("2d");
+            const myChart = new Chart(ctx, get_chart_object(formattedData, formattedData2));
+
+            // Event listeners for click + hold + stretch (up/down) for y-axis zoom
+            let isDragging = false;
+            let startY = 0;
+
+            ctx.canvas.addEventListener('mousedown', (event) => {
+                isDragging = true;
+                startY = event.offsetY;
+            });
+
+            ctx.canvas.addEventListener('mousemove', (event) => {
+                if (!isDragging) return;
+
+                const dy = event.offsetY - startY;
+
+                // Calculate the zoom factor based on the vertical drag distance
+                const zoomFactor = dy > 0 ? 1.05 : 0.95; // Zoom in or out
+                myChart.zoom({
+                    enabled: true,
+                    mode: 'y',
+                    amount: zoomFactor
+                });
+                myChart.update();
+
+                // Update startY to the current position for the next movement
+                startY = event.offsetY;
+            });
+
+            ctx.canvas.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            ctx.canvas.addEventListener('mouseout', () => {
+                isDragging = false; // Stop dragging if the mouse leaves the canvas
+            });
+        }
+
+        // Render the chart when the page loads
+        window.onload = renderChart;
+    </script>
+</body>
+</html>

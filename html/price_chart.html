@@ -139,34 +139,37 @@
 
         myChart.canvas.parentNode.style.overflow = 'hidden';
 
-            // Event listeners for click + hold + drag
-            let isDragging = false;
-            let startX = 0;
-            let startY = 0;
+        // Event listeners for click + hold + drag (panning effect)
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        ctx.canvas.addEventListener('mousedown', (event) => {
+          isDragging = true;
+          startX = event.offsetX;
+          startY = event.offsetY;
+        });
+        ctx.canvas.addEventListener('mousemove', (event) => {
+          if (!isDragging) return;
+          const dx = event.offsetX - startX;
+          const dy = event.offsetY - startY;
+          myChart.pan({ x: dx, y: dy });
+          myChart.update();
+          startX = event.offsetX;
+          startY = event.offsetY;
+        });
+        ctx.canvas.addEventListener('mouseup', () => {
+          isDragging = false;
+        });
+        ctx.canvas.addEventListener('mouseout', () => {
+          isDragging = false; // Stop dragging if the mouse leaves the canvas
+        });
+        // ------------------------------------------------------------
 
-            ctx.canvas.addEventListener('mousedown', (event) => {
-                isDragging = true;
-                startX = event.offsetX;
-                startY = event.offsetY;
-            });
 
-            ctx.canvas.addEventListener('mousemove', (event) => {
-                if (!isDragging) return;
-                const dx = event.offsetX - startX;
-                const dy = event.offsetY - startY;
-                myChart.pan({ x: dx, y: dy });
-                myChart.update();
-                startX = event.offsetX;
-                startY = event.offsetY;
-            });
+        // Event listeners for click + hold + stretch (up/down) for y-axis zoom
+        // TODO
+        // ------------------------------------------------------------
 
-            ctx.canvas.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
-
-            ctx.canvas.addEventListener('mouseout', () => {
-                isDragging = false; // Stop dragging if the mouse leaves the canvas
-            });
       }
 
       // Render the chart when the page loads
