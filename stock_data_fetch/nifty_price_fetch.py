@@ -28,7 +28,7 @@ def save_nifty_ltp_to_db(ws, ticks):
     )
     nifty_price.save()
 
-    print(f'NIFTY : {current_nifty_point}')
+    print(f'NIFTY [{now_ist()}] : {current_nifty_point}')
 
 
 def start_fetching_nifty_price_and_inserting_into_db():

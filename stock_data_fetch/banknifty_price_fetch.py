@@ -1,5 +1,4 @@
 import time
-from datetime import timedelta
 from kiteconnect import KiteTicker
 from common.constants import data_fetch_finish_time, banknifty_instrument_token, data_fetch_start_time, \
     market_opening_time, market_closing_time
@@ -29,7 +28,7 @@ def save_banknifty_ltp_to_db(ws, ticks):
     )
     banknifty_price.save()
 
-    print(f'BANKNIFTY : {current_banknifty_point}')
+    print(f'BANKNIFTY[{now_ist()}] : {current_banknifty_point}')
 
 
 def start_fetching_banknifty_price_and_inserting_into_db():
