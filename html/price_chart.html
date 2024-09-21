@@ -26,18 +26,20 @@
   <body>
     <div id="chartContainer">
       <canvas id="priceChart"></canvas>
+      <canvas id="slopeChart"></canvas>
+      <canvas id="divergenceChart"></canvas>
     </div>
 
     <script>
       // Function to fetch data from the API
-      async function fetchData() {
+      async function fetchPriceData() {
         const url = "http://localhost:8888/api/price";
         const params = new URLSearchParams({
           market: "BANKNIFTY",
           from_date: "2024-09-18",
           to_date: "2024-09-18",
           from_time: "12:45:00",
-          to_time: "12:45:20",
+          to_time: "12:50:20",
         });
 
         try {
@@ -56,22 +58,33 @@
         }
       }
 
-      function get_chart_object(formattedData, formattedData2) {
+      function get_price_chart_object(
+              tick_prices,
+              smooth_prices,
+              smooth_price_emas,
+      ) {
           return {
           type: "line",
           data: {
             datasets: [
               {
-                label: "Price",
-                data: formattedData,
+                label: "Tick Price",
+                data: tick_prices,
                 borderColor: "rgba(75, 192, 192, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 fill: false,
               },
               {
-                label: "Price",
-                data: formattedData2,
+                label: "Smooth Price",
+                data: smooth_prices,
                 borderColor: "rgba(111, 100, 180, 1)",
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                fill: false,
+              },
+              {
+                label: "Smooth Price EMA",
+                data: smooth_price_emas,
+                borderColor: "rgba(90, 34, 34, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 fill: false,
               },
@@ -118,57 +131,196 @@
         }
         }
 
-      // Function to initialize and render the chart
-      async function renderChart() {
-        const data = await fetchData();
-        console.log('api data: ', data)
 
-        // Convert timestamps to Date objects and format data for Chart.js
+      function get_slope_chart_object(slope) {
+        return {
+          type: "line",
+          data: {
+            datasets: [
+              {
+                label: "Slope",
+                data: slope,
+                borderColor: "rgba(75, 192, 192, 1)",
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: {
+                type: "time",
+                time: {
+                  unit: "second",
+                  tooltipFormat: "ll HH:mm:ss",
+                },
+                title: {
+                  display: true,
+                  text: "Timestamp",
+                },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "Price",
+                },
+              },
+            },
+            plugins: {
+              zoom: {
+                pan: {
+                  enabled: true,
+                  mode: "xy",
+                },
+                zoom: {
+                  wheel: {
+                    enabled: true,
+                  },
+                  mode: "x",
+                  onZoomComplete({ chart }) {
+                    chart.update('none'); // Prevent axes from being disturbed
+                  },
+                },
+              },
+            },
+          },
+        }
+      }
 
-        // chart 1
-        const formattedData = data.price_data.map((item) => ({
-          x: new Date(`${item.dt}T${item.tm}`),
-          y: item.price,
-        }));
-        const formattedData2 = data.price_data.map((item) => ({
-          x: new Date(`${item.dt}T${item.tm}`),
-          y: item.price + 10,
-        }));
-        const ctx = document.getElementById("priceChart").getContext("2d");
-        const myChart = new Chart(ctx, get_chart_object(formattedData, formattedData2));
+      function get_divergence_chart_object(divergence) {
+        return {
+          type: "line",
+          data: {
+            datasets: [
+              {
+                label: "Divergence",
+                data: divergence,
+                borderColor: "rgba(75, 192, 192, 1)",
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: {
+                type: "time",
+                time: {
+                  unit: "second",
+                  tooltipFormat: "ll HH:mm:ss",
+                },
+                title: {
+                  display: true,
+                  text: "Timestamp",
+                },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "Price",
+                },
+              },
+            },
+            plugins: {
+              zoom: {
+                pan: {
+                  enabled: true,
+                  mode: "xy",
+                },
+                zoom: {
+                  wheel: {
+                    enabled: true,
+                  },
+                  mode: "x",
+                  onZoomComplete({ chart }) {
+                    chart.update('none'); // Prevent axes from being disturbed
+                  },
+                },
+              },
+            },
+          },
+        }
+      }
 
-        myChart.canvas.parentNode.style.overflow = 'hidden';
+      function x_zoom_pan(chart, chart_ctx) {
+        chart.canvas.parentNode.style.overflow = 'hidden';
 
         // Event listeners for click + hold + drag (panning effect)
         let isDragging = false;
         let startX = 0;
         let startY = 0;
-        ctx.canvas.addEventListener('mousedown', (event) => {
+        chart_ctx.canvas.addEventListener('mousedown', (event) => {
           isDragging = true;
           startX = event.offsetX;
           startY = event.offsetY;
         });
-        ctx.canvas.addEventListener('mousemove', (event) => {
+        chart_ctx.canvas.addEventListener('mousemove', (event) => {
           if (!isDragging) return;
           const dx = event.offsetX - startX;
           const dy = event.offsetY - startY;
-          myChart.pan({ x: dx, y: dy });
-          myChart.update();
+          chart.pan({ x: dx, y: dy });
+          chart.update();
           startX = event.offsetX;
           startY = event.offsetY;
         });
-        ctx.canvas.addEventListener('mouseup', () => {
+        chart_ctx.canvas.addEventListener('mouseup', () => {
           isDragging = false;
         });
-        ctx.canvas.addEventListener('mouseout', () => {
+        chart_ctx.canvas.addEventListener('mouseout', () => {
           isDragging = false; // Stop dragging if the mouse leaves the canvas
         });
-        // ------------------------------------------------------------
+
+        return chart
+      }
+
+      // Function to initialize and render the chart
+      async function renderChart() {
+        // 1. fetch all prices from api
+        const data = await fetchPriceData();
+        console.log('api data: ', data)
+
+        const tick_prices = data.price_data.map((item) => ({
+          x: new Date(`${item.dt}T${item.tm}`),
+          y: item.tick_price,
+        }));
+        const smooth_prices = data.price_data.map((item) => ({
+          x: new Date(`${item.dt}T${item.tm}`),
+          y: item.smooth_price,
+        }));
+        const smooth_price_emas = data.price_data.map((item) => ({
+          x: new Date(`${item.dt}T${item.tm}`),
+          y: item.smooth_price_ema,
+        }));
+        const slope = data.price_data.map((item) => ({
+          x: new Date(`${item.dt}T${item.tm}`),
+          y: item.slope,
+        }));
+        const divergence = data.price_data.map((item) => ({
+          x: new Date(`${item.dt}T${item.tm}`),
+          y: item.divergence,
+        }));
 
 
-        // Event listeners for click + hold + stretch (up/down) for y-axis zoom
-        // TODO
-        // ------------------------------------------------------------
+        // ----------- chart 1 (price, smooth price, price ema) ------------ //
+        const ctxPriceChart = document.getElementById("priceChart").getContext("2d");
+        const priceChart = new Chart(ctxPriceChart, get_price_chart_object(
+                tick_prices,
+                smooth_prices,
+                smooth_price_emas,
+        ));
+        x_zoom_pan(priceChart, ctxPriceChart)
+
+
+        // ----------- chart 2 (slope) ------------ //
+        const ctxSlopeChart = document.getElementById("slopeChart").getContext("2d");
+        let slopeChart = new Chart(ctxSlopeChart, get_slope_chart_object(slope));
+        x_zoom_pan(slopeChart, ctxSlopeChart)
+
+
+        // ----------- chart 3 (divergence) ------------ //
+        const ctxDivergenceChart = document.getElementById("divergenceChart").getContext("2d");
+        let divergenceChart = new Chart(ctxDivergenceChart, get_divergence_chart_object(divergence));
+        x_zoom_pan(divergenceChart, ctxDivergenceChart)
 
       }
 
