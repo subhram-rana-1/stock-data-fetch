@@ -16,6 +16,7 @@ def fetch_nifty_price_data(
         to_timestamp: datetime,
         smooth_price_period: int,
         smooth_price_ema_period: int,
+        smooth_slope_period: int,
         slope_ema_period: int,
 ) -> PriceData:
     nifty_prices: List[NiftyPrice] = NiftyPrice.objects.filter(
@@ -34,6 +35,7 @@ def fetch_nifty_price_data(
         price_data,
         smooth_price_period,
         smooth_price_ema_period,
+        smooth_slope_period,
         slope_ema_period,
     )
 
@@ -45,6 +47,7 @@ def fetch_banknifty_price_data(
         to_timestamp: datetime,
         smooth_price_period: int,
         smooth_price_ema_period: int,
+        smooth_slope_period: int,
         slope_ema_period: int,
 ) -> PriceData:
     bank_nifty_prices: List[BankNiftyPrice] = BankNiftyPrice.objects.filter(
@@ -63,6 +66,7 @@ def fetch_banknifty_price_data(
         price_data,
         smooth_price_period,
         smooth_price_ema_period,
+        smooth_slope_period,
         slope_ema_period,
     )
 
@@ -80,6 +84,7 @@ def fetch_price_data(
 
         smooth_price_period: int,
         smooth_price_ema_period: int,
+        smooth_slope_period: int,
         slope_ema_period: int,
 ) -> PriceData:
     start_timestamp = datetime.combine(from_date, from_time) + timedelta(microseconds=0)
@@ -91,6 +96,7 @@ def fetch_price_data(
             to_timestamp,
             smooth_price_period,
             smooth_price_ema_period,
+            smooth_slope_period,
             slope_ema_period,
         )
     if market_type == MarketType.BANKNIFTY:
@@ -99,6 +105,7 @@ def fetch_price_data(
             to_timestamp,
             smooth_price_period,
             smooth_price_ema_period,
+            smooth_slope_period,
             slope_ema_period,
         )
 
@@ -118,6 +125,7 @@ def fetch_price(request: http.HttpRequest):
     smooth_price_period = configs.smooth_price_period
     smooth_price_ema_period = configs.smooth_price_ema_period
     slope_ema_period = configs.slope_ema_period
+    smooth_slope_period = configs.smooth_slope_period
 
     price_data: PriceData = fetch_price_data(
         MarketType(market_name),
@@ -125,6 +133,7 @@ def fetch_price(request: http.HttpRequest):
         from_time, to_time,
         smooth_price_period,
         smooth_price_ema_period,
+        smooth_slope_period,
         slope_ema_period,
     )
 

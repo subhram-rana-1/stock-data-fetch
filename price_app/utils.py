@@ -26,3 +26,24 @@ def calculate_ema(
         i += 1
 
     return ema_list
+
+
+def calculate_sma(
+        input_list: List[float],
+        period: int,
+) -> List[float]:
+    sma_list = []
+
+    sum = 0
+    for i in range(len(input_list)):
+        sum += input_list[i]
+
+        if i < (period-1):
+            sma_list.append(input_list[i])
+        else:
+            if i >= period:
+                sum -= input_list[i-period]
+
+            sma_list.append(sum / period)
+
+    return sma_list

@@ -27,20 +27,20 @@
     <div id="chartContainer">
       <canvas id="priceChart"></canvas>
       <canvas id="slopeChart"></canvas>
-      <canvas id="divergenceChart"></canvas>
+      <canvas id="momentumChart"></canvas>
     </div>
 
     <script>
       // Function to fetch data from the API
       async function fetchPriceData() {
-        const url = "http://localhost:8888/api/price";
-        const params = new URLSearchParams({
-          market: "NIFTY",
-          from_date: "2024-09-18",
-          to_date: "2024-09-18",
-          from_time: "09:15:00",
-          to_time: "12:00:00",
-        });
+      const url = "http://localhost:8888/api/price";
+      const params = new URLSearchParams({
+        market: "NIFTY",
+        from_date: "2024-09-19",
+        to_date: "2024-09-19",
+        from_time: "09:19:30",
+        to_time: "09:22:00",
+      });
 
         try {
           const response = await fetch(`${url}?${params.toString()}`, {
@@ -106,7 +106,7 @@
               y: {
                 title: {
                   display: true,
-                  text: "Price",
+                  text: "Prices",
                 },
               },
             },
@@ -132,15 +132,29 @@
         }
 
 
-      function get_slope_chart_object(slope) {
+      function get_slope_chart_object(slope, smooth_slope, smooth_slope_ema) {
         return {
           type: "line",
           data: {
             datasets: [
               {
-                label: "Slope",
+                label: "Slope / MACD line",
                 data: slope,
                 borderColor: "rgba(75, 192, 192, 1)",
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                fill: false,
+              },
+              {
+                label: "Smooth Slope",
+                data: smooth_slope,
+                borderColor: "rgba(334, 92, 192, 1)",
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                fill: false,
+              },
+              {
+                label: "Smooth slope EMA",
+                data: smooth_slope_ema,
+                borderColor: "rgba(23, 33, 315, 15)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 fill: false,
               },
@@ -162,7 +176,7 @@
               y: {
                 title: {
                   display: true,
-                  text: "Price",
+                  text: "Slopes",
                 },
               },
             },
@@ -187,13 +201,13 @@
         }
       }
 
-      function get_divergence_chart_object(divergence) {
+      function get_momentum_chart_object(divergence) {
         return {
           type: "line",
           data: {
             datasets: [
               {
-                label: "Divergence",
+                label: "Momentum",
                 data: divergence,
                 borderColor: "rgba(75, 192, 192, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
@@ -217,7 +231,7 @@
               y: {
                 title: {
                   display: true,
-                  text: "Price",
+                  text: "Momentum",
                 },
               },
             },
@@ -295,9 +309,17 @@
           x: new Date(`${item.dt}T${item.tm}`),
           y: item.slope,
         }));
-        const divergence = data.price_data.map((item) => ({
+        const smooth_slope = data.price_data.map((item) => ({
           x: new Date(`${item.dt}T${item.tm}`),
-          y: item.divergence,
+          y: item.smooth_slope,
+        }));
+        const smooth_slope_ema = data.price_data.map((item) => ({
+          x: new Date(`${item.dt}T${item.tm}`),
+          y: item.smooth_slope_ema,
+        }));
+        const momentum = data.price_data.map((item) => ({
+          x: new Date(`${item.dt}T${item.tm}`),
+          y: item.momentum,
         }));
 
 
@@ -313,14 +335,14 @@
 
         // ----------- chart 2 (slope) ------------ //
         const ctxSlopeChart = document.getElementById("slopeChart").getContext("2d");
-        let slopeChart = new Chart(ctxSlopeChart, get_slope_chart_object(slope));
+        let slopeChart = new Chart(ctxSlopeChart, get_slope_chart_object(slope, smooth_slope, smooth_slope_ema));
         x_zoom_pan(slopeChart, ctxSlopeChart)
 
 
         // ----------- chart 3 (divergence) ------------ //
-        const ctxDivergenceChart = document.getElementById("divergenceChart").getContext("2d");
-        let divergenceChart = new Chart(ctxDivergenceChart, get_divergence_chart_object(divergence));
-        x_zoom_pan(divergenceChart, ctxDivergenceChart)
+        const ctxMomentumChart = document.getElementById("momentumChart").getContext("2d");
+        let momentumChart = new Chart(ctxMomentumChart, get_momentum_chart_object(momentum));
+        x_zoom_pan(momentumChart, ctxMomentumChart)
 
       }
 

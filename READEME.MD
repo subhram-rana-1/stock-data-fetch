@@ -5,6 +5,7 @@
 * start mysql DB server: `docker-compose -f ./startup_scripts/db.yaml -p mysql_db up`
 * start price fetch process: `chmod +x ./startup_scripts/price-fetch.sh && ./startup_scripts/price-fetch.sh`
 * start api server: `chmod +x ./startup_scripts/api-server.sh && ./startup_scripts/api-server.sh`
+* run momentum analysis script: `python manage.py run_momentum_analysis_script`
 
 # DB data storage location
 * `/Users/Subhram/my-projects/db-mysql`

@@ -1,8 +1,9 @@
 from typing import TypedDict, List
 from datetime import datetime, date, time, timedelta
 from common.constants import date_format_string, time_format_string
-from price_app.utils import calculate_ema
+from price_app.utils import calculate_ema, calculate_sma
 from stock_data_fetch.enums import MarketType
+from . import configs
 
 
 class PriceDataPerTick(TypedDict):
@@ -12,8 +13,9 @@ class PriceDataPerTick(TypedDict):
     smooth_price: float
     smooth_price_ema: float
     slope: float
-    slope_ema: float
-    divergence: float
+    smooth_slope: float
+    smooth_slope_ema: float
+    momentum: float
 
 
 class PriceData(TypedDict):
@@ -28,11 +30,18 @@ def price_data_to_dict(price_data: PriceData) -> dict:
             'dt': price_data_per_tick['dt'].strftime(date_format_string),
             'tm': price_data_per_tick['tm'].strftime(time_format_string),
             'tick_price': price_data_per_tick['tick_price'],
-            'smooth_price': round(price_data_per_tick.get('smooth_price'), 2),
-            'smooth_price_ema': round(price_data_per_tick.get('smooth_price_ema'), 2),
-            'slope': round(price_data_per_tick.get('slope'), 2),
-            'slope_ema': round(price_data_per_tick.get('slope_ema'), 2),
-            'divergence': round(price_data_per_tick.get('divergence'), 2),
+            'smooth_price': round(price_data_per_tick.get('smooth_price'), 2) \
+                if price_data_per_tick.get('smooth_price') is not None else None,
+            'smooth_price_ema': round(price_data_per_tick.get('smooth_price_ema'), 2) \
+                if price_data_per_tick.get('smooth_price_ema') is not None else None,
+            'slope': round(price_data_per_tick.get('slope'), 2) \
+                if price_data_per_tick.get('slope') is not None else None,
+            'smooth_slope': round(price_data_per_tick.get('smooth_slope'), 2) \
+                if price_data_per_tick.get('smooth_slope') is not None else None,
+            'smooth_slope_ema': round(price_data_per_tick.get('smooth_slope_ema'), 2) \
+                if price_data_per_tick.get('smooth_slope_ema') is not None else None,
+            'momentum': round(price_data_per_tick.get('momentum'), 2) \
+                if price_data_per_tick.get('momentum') is not None else None,
         } for price_data_per_tick in price_data['price_list']],
     }
 
@@ -51,13 +60,20 @@ def calculate_other_auxiliary_prices(
         price_data: PriceData,
         smooth_price_period: int,
         smooth_price_ema_period: int,
-        slope_ema_period: int,
+        smooth_slope_period: int,
+        smooth_slope_ema_period: int,
 ):
+    if len(price_data['price_list']) == 0:
+        return
+
     calculate_smooth_price(price_data, smooth_price_period)
     calculate_smooth_price_ema(price_data, smooth_price_ema_period)
+
     calculate_slope(price_data)
-    calculate_slope_ema(price_data, slope_ema_period)
-    calculate_divergence(price_data)
+    calculate_smooth_slope(price_data, smooth_slope_period)
+    calculate_smooth_slope_ema(price_data, smooth_slope_ema_period)
+
+    calculate_momentum(price_data)
 
 
 def calculate_smooth_price(price_data: PriceData, smooth_price_period: int):
@@ -67,7 +83,14 @@ def calculate_smooth_price(price_data: PriceData, smooth_price_period: int):
                         'smooth price can\'t be calculated')
 
     tick_prices = [price['tick_price'] for price in price_list]
-    smooth_prices = calculate_ema(tick_prices, smooth_price_period)
+
+    if configs.smooth_price_averaging_method == 'simple':
+        smooth_prices = calculate_sma(tick_prices, smooth_price_period)
+    elif configs.smooth_price_averaging_method == 'exponential':
+        smooth_prices = calculate_ema(tick_prices, smooth_price_period)
+    else:
+        smooth_prices = calculate_sma(tick_prices, smooth_price_period)
+
     for i in range(len(price_list)):
         price_list[i]['smooth_price'] = smooth_prices[i]
 
@@ -95,26 +118,43 @@ def calculate_slope(price_data: PriceData):
         price_list[i]['slope'] = price_list[i]['smooth_price'] - price_list[i]['smooth_price_ema']
 
 
-def calculate_slope_ema(price_data: PriceData, slope_ema_period: int):
+def calculate_smooth_slope(price_data: PriceData, smooth_slope_period: int):
     price_list = price_data['price_list']
     if price_list[0].get('slope') is None:
         raise Exception('slope is not calculated. Hence '
-                        'slope ema can\'t be calculated')
+                        'smooth slope can\'t be calculated')
 
-    slope = [price['slope'] for price in price_list]
-    slope_emas = calculate_ema(slope, slope_ema_period)
+    slopes = [price['slope'] for price in price_list]
+
+    if configs.smooth_slope_averaging_method == 'simple':
+        smooth_slopes = calculate_sma(slopes, smooth_slope_period)
+    elif configs.smooth_slope_averaging_method == 'exponential':
+        smooth_slopes = calculate_ema(slopes, smooth_slope_period)
+    else:
+        smooth_slopes = calculate_sma(slopes, smooth_slope_period)
+
     for i in range(len(price_list)):
-        price_list[i]['slope_ema'] = slope_emas[i]
+        price_list[i]['smooth_slope'] = smooth_slopes[i]
 
 
-def calculate_divergence(price_data: PriceData):
+def calculate_smooth_slope_ema(price_data: PriceData, smooth_slope_ema_period: int):
     price_list = price_data['price_list']
-    if price_list[0].get('slope') is None or \
-            price_list[0].get('slope_ema') is None:
-        raise Exception('either slope or slope ema is not calculated. Hence '
+    if price_list[0].get('smooth_slope') is None:
+        raise Exception('smooth slope is not calculated. Hence '
+                        'smooth slope ema can\'t be calculated')
+
+    smooth_slopes = [price['smooth_slope'] for price in price_list]
+    smooth_slope_emas = calculate_ema(smooth_slopes, smooth_slope_ema_period)
+    for i in range(len(price_list)):
+        price_list[i]['smooth_slope_ema'] = smooth_slope_emas[i]
+
+
+def calculate_momentum(price_data: PriceData):
+    price_list = price_data['price_list']
+    if price_list[0].get('smooth_slope') is None or \
+            price_list[0].get('smooth_slope_ema') is None:
+        raise Exception('either smooth slope or smooth slope ema is not calculated. Hence '
                         'divergence can\'t be calculated')
 
     for i in range(len(price_list)):
-        price_list[i]['divergence'] = price_list[i]['slope'] - price_list[i]['slope_ema']
-
-    
+        price_list[i]['momentum'] = price_list[i]['smooth_slope'] - price_list[i]['smooth_slope_ema']
