@@ -1,11 +1,13 @@
 # Runs simulation from start date to end date, generates entry and exit points in momentum catching
 # and stores in output xlsx sheet
-
+import os
+import openpyxl
 from datetime import datetime, date, time, timedelta
 from typing import List
 
 from price_app.classes import PriceData, PriceDataPerTick
 from price_app.handlers import fetch_price_data
+from price_app.utils import get_occurrence_distribution
 from stock_data_fetch.enums import MarketType
 
 # CONSTANTS ---------
@@ -21,23 +23,51 @@ time_str_format = "%H:%M:%S"
 
 # CONFIGS ---------
 class Config:
+    # chart configs
     smooth_price_averaging_method = 'exponential'  # exponential
-    smooth_price_period = 8
-    smooth_price_ema_period = 40
+    smooth_price_period = 10
+    smooth_price_ema_period = 52
 
-    smooth_slope_averaging_method = 'simple'  # exponential
+    smooth_slope_averaging_method = 'exponential'  # exponential
     smooth_slope_period = 3
-    slope_ema_period = 10
+    slope_ema_period = 6
 
-    entry_config_momentum_threshold = 1.5
+    smooth_momentum_averaging_method = 'exponential'  # exponential
+    smooth_momentum_period = 3
+    smooth_momentum_ema_period = 6
+
+    # trading configs
+    entry_config_momentum_threshold = 1
+    entry_config_momentum_rate_threshold = 0
     sl = 12
 
 
 # INPUTS ----------
 class Input:
     market_type = MarketType.NIFTY
-    start_date_time = datetime(2024, 9, 25, 9, 16, 0)
-    end_date_time = datetime(2024, 9, 25, 9, 30, 0)
+    start_date_time = datetime(2024, 9, 24, 9, 16, 0)
+    end_date_time = datetime(2024, 9, 24, 15, 29, 0)
+
+    momentum_occurrence_distribution_bucket_size = 5
+
+    output_file_relative_path = 'price_app/scripts/momentum_analysis/momentum_analysis_output.xlsx'
+    sheet_name = 'momentum'
+    clean_sheet = True
+
+    result_start_row = 2
+
+    col_date = 1
+    col_entry_time = 2
+    col_exit_time = 3
+    col_exp_direction = 4
+    col_entry_price = 5
+    col_exit_price = 6
+    col_move = 7
+
+    col_momentum_buckets = 9
+    col_occurrence = 10
+    col_occurrence_cum_sum = 11
+    col_occurrence_sum_percentage = 12
 
 
 class MarketMoveData:
@@ -74,14 +104,28 @@ class MarketMoveData:
         }
 
 
-def entry_condition_for_up_move(slope: float, momentum: float,
-                                entry_config_momentum_threshold: float) -> bool:
-    return slope > 0 and momentum >= entry_config_momentum_threshold
+def entry_condition_for_up_move(
+        slope: float,
+        momentum: float,
+        entry_config_momentum_threshold: float,
+        momentum_rate: float,
+        entry_config_momentum_rate_threshold: float,
+) -> bool:
+    return slope > 0 and \
+        momentum >= entry_config_momentum_threshold and \
+        momentum_rate >= entry_config_momentum_rate_threshold
 
 
-def entry_condition_for_down_move(slope: float, momentum: float,
-                                  entry_config_momentum_threshold: float) -> bool:
-    return slope < 0 and momentum <= -1 * entry_config_momentum_threshold
+def entry_condition_for_down_move(
+        slope: float,
+        momentum: float,
+        entry_config_momentum_threshold: float,
+        momentum_rate: float,
+        entry_config_momentum_rate_threshold: float,
+) -> bool:
+    return slope < 0 and \
+        momentum <= -1 * entry_config_momentum_threshold and \
+        momentum_rate <= -1 * entry_config_momentum_rate_threshold
 
 
 def cross_over_happened_in_up_move(cur_smooth_price: float, cur_smooth_price_ema: float) -> bool:
@@ -117,6 +161,8 @@ def get_market_moves_for_day(
         config.smooth_price_ema_period,
         config.smooth_slope_period,
         config.slope_ema_period,
+        config.smooth_momentum_period,
+        config.smooth_momentum_ema_period,
     )
 
     price_list: List[PriceDataPerTick] = price_data['price_list']
@@ -131,10 +177,11 @@ def get_market_moves_for_day(
         tm: time = price_info['tm']
         tick_price: float = price_info['tick_price']
         slope: float = price_info['slope']
-        smooth_slope: float = price_info['smooth_slope']
         momentum: float = price_info['momentum']
+        momentum_rate: float = price_info['momentum_rate']
 
-        if entry_condition_for_up_move(slope, momentum, config.entry_config_momentum_threshold):
+        if entry_condition_for_up_move(slope, momentum, config.entry_config_momentum_threshold,
+                                       momentum_rate, config.entry_config_momentum_rate_threshold):
             start_tm: time = tm
             start_tick_price: float = tick_price
 
@@ -150,10 +197,6 @@ def get_market_moves_for_day(
                     break
 
                 if cross_over_happened_in_up_move(cur_smooth_price, cur_smooth_price_ema):
-                    print('cross over jus happened...')
-                    print(f'cur_time: {price_list[j]["tm"]}')
-                    print(f'cur_smooth_price: {cur_smooth_price}')
-                    print(f'cur_smooth_price_ema: {cur_smooth_price_ema}')
                     break
 
                 j += 1
@@ -177,7 +220,8 @@ def get_market_moves_for_day(
             ))
 
             i = j + 1
-        elif entry_condition_for_down_move(slope, momentum, config.entry_config_momentum_threshold):
+        elif entry_condition_for_down_move(slope, momentum, config.entry_config_momentum_threshold,
+                                           momentum_rate, config.entry_config_momentum_rate_threshold):
             start_tm: time = tm
             start_tick_price: float = tick_price
 
@@ -193,10 +237,6 @@ def get_market_moves_for_day(
                     break
 
                 if cross_over_happened_in_down_move(cur_smooth_price, cur_smooth_price_ema):
-                    print('cross over jus happened...')
-                    print(f'cur_time: {price_list[j]["tm"]}')
-                    print(f'cur_smooth_price: {cur_smooth_price}')
-                    print(f'cur_smooth_price_ema: {cur_smooth_price_ema}')
                     break
 
                 j += 1
@@ -206,7 +246,7 @@ def get_market_moves_for_day(
 
             end_time: time = price_list[j]['tm']
             end_tick_price: float = price_list[j]['tick_price']
-            delta = price_list[j]['tick_price'] - start_tick_price
+            delta = start_tick_price - price_list[j]['tick_price']
 
             res.append(MarketMoveData(
                 date=day,
@@ -257,6 +297,91 @@ def simulate_momentum_analysis(
     return res
 
 
+def clean_sheet(absolute_file_path, workbook, sheet):
+    for row in range(Input.result_start_row, sheet.max_row + 1):
+        sheet.cell(row=row, column=Input.col_date).value = None
+        sheet.cell(row=row, column=Input.col_entry_time).value = None
+        sheet.cell(row=row, column=Input.col_exit_time).value = None
+        sheet.cell(row=row, column=Input.col_exp_direction).value = None
+        sheet.cell(row=row, column=Input.col_entry_price).value = None
+        sheet.cell(row=row, column=Input.col_exit_price).value = None
+        sheet.cell(row=row, column=Input.col_move).value = None
+
+        sheet.cell(row=row, column=Input.col_momentum_buckets).value = None
+        sheet.cell(row=row, column=Input.col_occurrence).value = None
+        sheet.cell(row=row, column=Input.col_occurrence_cum_sum).value = None
+        sheet.cell(row=row, column=Input.col_occurrence_sum_percentage).value = None
+
+    workbook.save(absolute_file_path)
+
+
+def write_move_data(absolute_file_path, workbook, sheet, market_moves: List[MarketMoveData]):
+    # move_deltas.sort() TODO
+
+    cur_row = Input.result_start_row
+    for market_move in market_moves:
+        market_move_dict: dict = market_move.to_dict()
+
+        date = market_move_dict['date']
+        entry_time = market_move_dict['start_time']
+        exit_time = market_move_dict['end_time']
+        expected_direction = market_move_dict['expected_direction']
+        entry_point = market_move_dict['start_point']
+        exit_point = market_move_dict['end_point']
+        delta = market_move_dict['delta']
+
+        sheet.cell(row=cur_row, column=Input.col_date, value=date)
+        sheet.cell(row=cur_row, column=Input.col_entry_time, value=entry_time)
+        sheet.cell(row=cur_row, column=Input.col_exit_time, value=exit_time)
+        sheet.cell(row=cur_row, column=Input.col_exp_direction, value=expected_direction)
+        sheet.cell(row=cur_row, column=Input.col_entry_price, value=entry_point)
+        sheet.cell(row=cur_row, column=Input.col_exit_price, value=exit_point)
+        sheet.cell(row=cur_row, column=Input.col_move, value=delta)
+
+        cur_row += 1
+
+    workbook.save(absolute_file_path)
+
+
+def write_momentum_occurrences(absolute_file_path, workbook, sheet, momentum_distribution: dict):
+    cur_row = Input.result_start_row
+    for group_range, arr in momentum_distribution.items():
+        count = arr[0]
+        cum_sum = arr[1]
+        cum_percentage = arr[2]
+
+        sheet.cell(row=cur_row, column=Input.col_momentum_buckets, value=group_range)
+        sheet.cell(row=cur_row, column=Input.col_occurrence, value=count)
+        sheet.cell(row=cur_row, column=Input.col_occurrence_cum_sum, value=cum_sum)
+        sheet.cell(row=cur_row, column=Input.col_occurrence_sum_percentage, value=cum_percentage)
+
+        cur_row += 1
+
+    workbook.save(absolute_file_path)
+
+
+def save_in_output_xlsx_sheet(market_moves: List[MarketMoveData], momentum_distribution: dict):
+    absolute_file_path = os.path.abspath(Input.output_file_relative_path)
+    workbook = openpyxl.load_workbook(absolute_file_path)
+    sheet = workbook[Input.sheet_name]
+
+    if Input.clean_sheet:
+        clean_sheet(absolute_file_path, workbook, sheet)
+
+    write_move_data(absolute_file_path, workbook, sheet, market_moves)
+    write_momentum_occurrences(absolute_file_path, workbook, sheet, momentum_distribution)
+
+    workbook.close()
+
+
 def main():
     market_moves: List[MarketMoveData] = simulate_momentum_analysis(Config(), Input())
-    print([market_move.to_dict() for market_move in market_moves])
+    move_deltas = [market_move.delta for market_move in market_moves]
+    momentum_distribution: dict = get_occurrence_distribution(
+        move_deltas,
+        Input.momentum_occurrence_distribution_bucket_size,
+    )
+
+    # print(f'momentum_distribution: {momentum_distribution}')
+
+    save_in_output_xlsx_sheet(market_moves, momentum_distribution)

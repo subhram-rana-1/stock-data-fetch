@@ -3,3 +3,4 @@ kiteconnect
 pytz
 mysqlclient
 django-cors-headers
+openpyxl

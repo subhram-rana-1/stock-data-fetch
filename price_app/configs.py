@@ -1,5 +1,3 @@
-common_period = 20
-
 smooth_price_averaging_method = 'exponential'  # exponential
 smooth_price_period = 10
 smooth_price_ema_period = 52
