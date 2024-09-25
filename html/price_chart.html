@@ -28,6 +28,7 @@
       <canvas id="priceChart"></canvas>
       <canvas id="slopeChart"></canvas>
       <canvas id="momentumChart"></canvas>
+      <canvas id="momentumRateChart"></canvas>
     </div>
 
     <script>
@@ -36,10 +37,10 @@
       const url = "http://localhost:8888/api/price";
       const params = new URLSearchParams({
         market: "NIFTY",
-        from_date: "2024-09-19",
-        to_date: "2024-09-19",
-        from_time: "09:19:30",
-        to_time: "09:22:00",
+        from_date: "2024-09-25",
+        to_date: "2024-09-25",
+        from_time: "14:50:00",
+        to_time: "15:29:00",
       });
 
         try {
@@ -70,21 +71,23 @@
               {
                 label: "Tick Price",
                 data: tick_prices,
-                borderColor: "rgba(75, 192, 192, 1)",
+                borderColor: "rgba(0, 0, 255, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 fill: false,
+                borderWidth: 0.5,
+                pointRadius: 1,
               },
               {
                 label: "Smooth Price",
                 data: smooth_prices,
-                borderColor: "rgba(111, 100, 180, 1)",
+                borderColor: "rgba(10, 180, 0, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 fill: false,
               },
               {
                 label: "Smooth Price EMA",
                 data: smooth_price_emas,
-                borderColor: "rgba(90, 34, 34, 1)",
+                borderColor: "rgba(200, 0, 0, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 fill: false,
               },
@@ -140,21 +143,23 @@
               {
                 label: "Slope / MACD line",
                 data: slope,
-                borderColor: "rgba(75, 192, 192, 1)",
+                borderColor: "rgba(0, 0, 255, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 fill: false,
+                borderWidth: 0.5,
+                pointRadius: 1,
               },
               {
                 label: "Smooth Slope",
                 data: smooth_slope,
-                borderColor: "rgba(334, 92, 192, 1)",
+                borderColor: "rgba(0, 180, 0, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 fill: false,
               },
               {
                 label: "Smooth slope EMA",
                 data: smooth_slope_ema,
-                borderColor: "rgba(23, 33, 315, 15)",
+                borderColor: "rgba(200, 0, 0, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 fill: false,
               },
@@ -201,13 +206,75 @@
         }
       }
 
-      function get_momentum_chart_object(divergence) {
+      function get_momentum_chart_object(momentum, momentum_rate) {
         return {
           type: "line",
           data: {
             datasets: [
               {
                 label: "Momentum",
+                data: momentum,
+                borderColor: "rgba(0, 180, 0, 1)",
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                fill: false,
+              },
+              {
+                label: "Momentum Rate",
+                data: momentum_rate,
+                borderColor: "rgba(200, 0, 0, 1)",
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: {
+                type: "time",
+                time: {
+                  unit: "second",
+                  tooltipFormat: "ll HH:mm:ss",
+                },
+                title: {
+                  display: true,
+                  text: "Timestamp",
+                },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "Momentum",
+                },
+              },
+            },
+            plugins: {
+              zoom: {
+                pan: {
+                  enabled: true,
+                  mode: "xy",
+                },
+                zoom: {
+                  wheel: {
+                    enabled: true,
+                  },
+                  mode: "x",
+                  onZoomComplete({ chart }) {
+                    chart.update('none'); // Prevent axes from being disturbed
+                  },
+                },
+              },
+            },
+          },
+        }
+      }
+
+      function get_momentum_rate_chart_object(divergence) {
+        return {
+          type: "line",
+          data: {
+            datasets: [
+              {
+                label: "Momentum Rate",
                 data: divergence,
                 borderColor: "rgba(75, 192, 192, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
@@ -231,7 +298,7 @@
               y: {
                 title: {
                   display: true,
-                  text: "Momentum",
+                  text: "Momentum Rate",
                 },
               },
             },
@@ -321,6 +388,10 @@
           x: new Date(`${item.dt}T${item.tm}`),
           y: item.momentum,
         }));
+        const momentum_rate = data.price_data.map((item) => ({
+          x: new Date(`${item.dt}T${item.tm}`),
+          y: item.momentum_rate,
+        }));
 
 
         // ----------- chart 1 (price, smooth price, price ema) ------------ //
@@ -339,9 +410,9 @@
         x_zoom_pan(slopeChart, ctxSlopeChart)
 
 
-        // ----------- chart 3 (divergence) ------------ //
+        // ----------- chart 3 (momentum, momentum rate) ------------ //
         const ctxMomentumChart = document.getElementById("momentumChart").getContext("2d");
-        let momentumChart = new Chart(ctxMomentumChart, get_momentum_chart_object(momentum));
+        let momentumChart = new Chart(ctxMomentumChart, get_momentum_chart_object(momentum, momentum_rate));
         x_zoom_pan(momentumChart, ctxMomentumChart)
 
       }

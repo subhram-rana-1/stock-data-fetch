@@ -21,23 +21,23 @@ time_str_format = "%H:%M:%S"
 
 # CONFIGS ---------
 class Config:
-    smooth_price_averaging_method = 'simple'  # exponential
+    smooth_price_averaging_method = 'exponential'  # exponential
     smooth_price_period = 8
-    smooth_price_ema_period = 30
+    smooth_price_ema_period = 40
 
     smooth_slope_averaging_method = 'simple'  # exponential
-    smooth_slope_period = 5
+    smooth_slope_period = 3
     slope_ema_period = 10
 
-    entry_config_momentum_threshold = 0.5
+    entry_config_momentum_threshold = 1.5
     sl = 12
 
 
 # INPUTS ----------
 class Input:
     market_type = MarketType.NIFTY
-    start_date_time = datetime(2024, 9, 19, 9, 19, 30)
-    end_date_time = datetime(2024, 9, 19, 9, 22, 0)
+    start_date_time = datetime(2024, 9, 25, 9, 16, 0)
+    end_date_time = datetime(2024, 9, 25, 9, 30, 0)
 
 
 class MarketMoveData:

@@ -16,6 +16,9 @@ class PriceDataPerTick(TypedDict):
     smooth_slope: float
     smooth_slope_ema: float
     momentum: float
+    smooth_momentum: float
+    smooth_momentum_ema: float
+    momentum_rate: float
 
 
 class PriceData(TypedDict):
@@ -42,6 +45,12 @@ def price_data_to_dict(price_data: PriceData) -> dict:
                 if price_data_per_tick.get('smooth_slope_ema') is not None else None,
             'momentum': round(price_data_per_tick.get('momentum'), 2) \
                 if price_data_per_tick.get('momentum') is not None else None,
+            'smooth_momentum': round(price_data_per_tick.get('smooth_momentum'), 2) \
+                if price_data_per_tick.get('smooth_momentum') is not None else None,
+            'smooth_momentum_ema': round(price_data_per_tick.get('smooth_momentum_ema'), 2) \
+                if price_data_per_tick.get('smooth_momentum_ema') is not None else None,
+            'momentum_rate': round(price_data_per_tick.get('momentum_rate'), 2) \
+                if price_data_per_tick.get('momentum_rate') is not None else None,
         } for price_data_per_tick in price_data['price_list']],
     }
 
@@ -62,6 +71,8 @@ def calculate_other_auxiliary_prices(
         smooth_price_ema_period: int,
         smooth_slope_period: int,
         smooth_slope_ema_period: int,
+        smooth_momentum_period: int,
+        smooth_momentum_ema_period: int,
 ):
     if len(price_data['price_list']) == 0:
         return
@@ -74,6 +85,10 @@ def calculate_other_auxiliary_prices(
     calculate_smooth_slope_ema(price_data, smooth_slope_ema_period)
 
     calculate_momentum(price_data)
+    calculate_smooth_momentum(price_data, smooth_momentum_period)
+    calculate_smooth_momentum_ema(price_data, smooth_momentum_ema_period)
+
+    calculate_momentum_rate(price_data)
 
 
 def calculate_smooth_price(price_data: PriceData, smooth_price_period: int):
@@ -158,3 +173,45 @@ def calculate_momentum(price_data: PriceData):
 
     for i in range(len(price_list)):
         price_list[i]['momentum'] = price_list[i]['smooth_slope'] - price_list[i]['smooth_slope_ema']
+
+
+def calculate_smooth_momentum(price_data: PriceData, smooth_momentum_period: int):
+    price_list = price_data['price_list']
+    if price_list[0].get('momentum') is None:
+        raise Exception('momentum is not calculated. Hence '
+                        'smooth momentum can\'t be calculated')
+
+    momentums = [price['momentum'] for price in price_list]
+
+    if configs.smooth_momentum_averaging_method == 'simple':
+        smooth_momentums = calculate_sma(momentums, smooth_momentum_period)
+    elif configs.smooth_momentum_averaging_method == 'exponential':
+        smooth_momentums = calculate_ema(momentums, smooth_momentum_period)
+    else:
+        smooth_momentums = calculate_sma(momentums, smooth_momentum_period)
+
+    for i in range(len(price_list)):
+        price_list[i]['smooth_momentum'] = smooth_momentums[i]
+
+
+def calculate_smooth_momentum_ema(price_data: PriceData, smooth_momentum_ema_period: int):
+    price_list = price_data['price_list']
+    if price_list[0].get('smooth_momentum') is None:
+        raise Exception('smooth momentum is not calculated. Hence '
+                        'smooth momentum ema can\'t be calculated')
+
+    smooth_momentum = [price['smooth_momentum'] for price in price_list]
+    smooth_momentum_emas = calculate_ema(smooth_momentum, smooth_momentum_ema_period)
+    for i in range(len(price_list)):
+        price_list[i]['smooth_momentum_ema'] = smooth_momentum_emas[i]
+
+
+def calculate_momentum_rate(price_data: PriceData):
+    price_list = price_data['price_list']
+    if price_list[0].get('smooth_momentum') is None or \
+            price_list[0].get('smooth_momentum_ema') is None:
+        raise Exception('either smooth momentum or smooth momentum ema is not calculated. Hence '
+                        'momentum_rate can\'t be calculated')
+
+    for i in range(len(price_list)):
+        price_list[i]['momentum_rate'] = price_list[i]['smooth_momentum'] - price_list[i]['smooth_momentum_ema']

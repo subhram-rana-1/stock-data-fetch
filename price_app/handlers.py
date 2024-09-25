@@ -18,6 +18,8 @@ def fetch_nifty_price_data(
         smooth_price_ema_period: int,
         smooth_slope_period: int,
         slope_ema_period: int,
+        smooth_momentum_period: int,
+        smooth_momentum_ema_period: int,
 ) -> PriceData:
     nifty_prices: List[NiftyPrice] = NiftyPrice.objects.filter(
         timestamp__gte=start_timestamp,
@@ -37,6 +39,8 @@ def fetch_nifty_price_data(
         smooth_price_ema_period,
         smooth_slope_period,
         slope_ema_period,
+        smooth_momentum_period,
+        smooth_momentum_ema_period,
     )
 
     return price_data
@@ -49,6 +53,8 @@ def fetch_banknifty_price_data(
         smooth_price_ema_period: int,
         smooth_slope_period: int,
         slope_ema_period: int,
+        smooth_momentum_period: int,
+        smooth_momentum_ema_period: int,
 ) -> PriceData:
     bank_nifty_prices: List[BankNiftyPrice] = BankNiftyPrice.objects.filter(
         timestamp__gte=start_timestamp,
@@ -68,6 +74,8 @@ def fetch_banknifty_price_data(
         smooth_price_ema_period,
         smooth_slope_period,
         slope_ema_period,
+        smooth_momentum_period,
+        smooth_momentum_ema_period,
     )
 
     return price_data
@@ -86,6 +94,8 @@ def fetch_price_data(
         smooth_price_ema_period: int,
         smooth_slope_period: int,
         slope_ema_period: int,
+        smooth_momentum_period: int,
+        smooth_momentum_ema_period: int,
 ) -> PriceData:
     start_timestamp = datetime.combine(from_date, from_time) + timedelta(microseconds=0)
     to_timestamp = datetime.combine(to_date, to_time) + timedelta(microseconds=0)
@@ -98,6 +108,8 @@ def fetch_price_data(
             smooth_price_ema_period,
             smooth_slope_period,
             slope_ema_period,
+            smooth_momentum_period,
+            smooth_momentum_ema_period,
         )
     if market_type == MarketType.BANKNIFTY:
         return fetch_banknifty_price_data(
@@ -107,6 +119,8 @@ def fetch_price_data(
             smooth_price_ema_period,
             smooth_slope_period,
             slope_ema_period,
+            smooth_momentum_period,
+            smooth_momentum_ema_period,
         )
 
     raise Exception(f'invalid market type: {market_type}')
@@ -127,6 +141,9 @@ def fetch_price(request: http.HttpRequest):
     slope_ema_period = configs.slope_ema_period
     smooth_slope_period = configs.smooth_slope_period
 
+    smooth_momentum_period = configs.smooth_momentum_period
+    smooth_momentum_ema_period = configs.smooth_momentum_ema_period
+
     price_data: PriceData = fetch_price_data(
         MarketType(market_name),
         from_date, to_date,
@@ -135,6 +152,8 @@ def fetch_price(request: http.HttpRequest):
         smooth_price_ema_period,
         smooth_slope_period,
         slope_ema_period,
+        smooth_momentum_period,
+        smooth_momentum_ema_period,
     )
 
     return JsonResponse(price_data_to_dict(price_data))
