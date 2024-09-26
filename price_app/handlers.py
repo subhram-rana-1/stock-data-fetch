@@ -17,7 +17,7 @@ def fetch_nifty_price_data(
         smooth_price_period: int,
         smooth_price_ema_period: int,
         smooth_slope_period: int,
-        slope_ema_period: int,
+        smooth_slope_ema_period: int,
         smooth_momentum_period: int,
         smooth_momentum_ema_period: int,
 ) -> PriceData:
@@ -38,7 +38,7 @@ def fetch_nifty_price_data(
         smooth_price_period,
         smooth_price_ema_period,
         smooth_slope_period,
-        slope_ema_period,
+        smooth_slope_ema_period,
         smooth_momentum_period,
         smooth_momentum_ema_period,
     )
@@ -93,7 +93,7 @@ def fetch_price_data(
         smooth_price_period: int,
         smooth_price_ema_period: int,
         smooth_slope_period: int,
-        slope_ema_period: int,
+        smooth_slope_ema_period: int,
         smooth_momentum_period: int,
         smooth_momentum_ema_period: int,
 ) -> PriceData:
@@ -107,7 +107,7 @@ def fetch_price_data(
             smooth_price_period,
             smooth_price_ema_period,
             smooth_slope_period,
-            slope_ema_period,
+            smooth_slope_ema_period,
             smooth_momentum_period,
             smooth_momentum_ema_period,
         )
@@ -118,7 +118,7 @@ def fetch_price_data(
             smooth_price_period,
             smooth_price_ema_period,
             smooth_slope_period,
-            slope_ema_period,
+            smooth_slope_ema_period,
             smooth_momentum_period,
             smooth_momentum_ema_period,
         )
@@ -138,7 +138,7 @@ def fetch_price(request: http.HttpRequest):
 
     smooth_price_period = configs.smooth_price_period
     smooth_price_ema_period = configs.smooth_price_ema_period
-    slope_ema_period = configs.slope_ema_period
+    smooth_slope_ema_period = configs.smooth_slope_ema_period
     smooth_slope_period = configs.smooth_slope_period
 
     smooth_momentum_period = configs.smooth_momentum_period
@@ -151,7 +151,7 @@ def fetch_price(request: http.HttpRequest):
         smooth_price_period,
         smooth_price_ema_period,
         smooth_slope_period,
-        slope_ema_period,
+        smooth_slope_ema_period,
         smooth_momentum_period,
         smooth_momentum_ema_period,
     )
