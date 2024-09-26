@@ -74,7 +74,7 @@ def get_occurrence_distribution(nums: List[float], grouping_range_width: int) ->
     sum_of_occurrence = 0
     tot_cumulative_occurrence = 0
     while i < len(nums):
-        if nums[i] <= end_range:
+        if nums[i] < end_range:
             sum_of_occurrence += 1
         else:
             key = get_bucket_key(start_range, end_range)

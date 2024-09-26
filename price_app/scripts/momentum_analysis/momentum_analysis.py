@@ -9,14 +9,16 @@ from price_app.classes import PriceData, PriceDataPerTick
 from price_app.handlers import fetch_price_data
 from price_app.utils import get_occurrence_distribution
 from stock_data_fetch.enums import MarketType
+from price_app import configs
 
 # CONSTANTS ---------
 direction_up = 'up'
 direction_down = 'down'
 market_entry_time = time(9, 16)
 market_exit_time = time(15, 29)
-exit_reason_crossover = 'crossover'
+# exit_reason_crossover = 'crossover'
 exit_reason_sl_hit = 'sl_hit'
+exit_reason_fix_target_achieved = 'fix_target_achieved'
 date_str_format = "%Y-%m-%d"
 time_str_format = "%H:%M:%S"
 
@@ -24,29 +26,33 @@ time_str_format = "%H:%M:%S"
 # CONFIGS ---------
 class Config:
     # chart configs
-    smooth_price_averaging_method = 'exponential'  # exponential
-    smooth_price_period = 240
-    smooth_price_ema_period = int(smooth_price_period * 5.3)
+    smooth_price_averaging_method = configs.smooth_price_averaging_method
+    smooth_price_period = configs.smooth_price_period
+    smooth_price_ema_period = configs.smooth_price_ema_period
 
-    smooth_slope_averaging_method = 'simple'  # exponential
-    smooth_slope_period = 30
-    smooth_slope_ema_period = 20
+    smooth_slope_averaging_method = configs.smooth_slope_averaging_method
+    smooth_slope_period = configs.smooth_slope_period
+    smooth_slope_ema_period = configs.smooth_slope_ema_period
 
-    smooth_momentum_averaging_method = 'simple'  # exponential
-    smooth_momentum_period = 10
-    smooth_momentum_ema_period = 60
+    smooth_momentum_averaging_method = configs.smooth_momentum_averaging_method
+    smooth_momentum_period = configs.smooth_momentum_period
+    smooth_momentum_ema_period = configs.smooth_momentum_ema_period
 
     # trading configs
-    entry_config_momentum_threshold = 0.3
-    entry_config_momentum_rate_threshold = 0
+    min_entry_time = time(10, 14)
+    entry_config_smooth_slope_threshold = 0.2  # 40 degree angle (up or down)
+    entry_config_momentum_threshold = 0.4
+    entry_config_momentum_rate_threshold = 0.1
     sl = 10
+    fix_point_diff_target = 5
 
 
 # INPUTS ----------
 class Input:
     market_type = MarketType.NIFTY
-    start_date_time = datetime(2024, 9, 24, 9, 16, 0)
-    end_date_time = datetime(2024, 9, 24, 14, 45, 0)
+    start_date_time = datetime(2024, 9, 19, 10, 12, 0)
+    end_date_time = datetime(2024, 9, 19, 15, 29, 0)
+    # end_date_time = datetime(2024, 9, 19, 15, 29, 0)
 
     momentum_occurrence_distribution_bucket_size = 5
 
@@ -63,11 +69,12 @@ class Input:
     col_entry_price = 5
     col_exit_price = 6
     col_move = 7
+    col_exit_reason = 8
 
-    col_momentum_buckets = 9
-    col_occurrence = 10
-    col_occurrence_cum_sum = 11
-    col_occurrence_sum_percentage = 12
+    col_momentum_buckets = 10
+    col_occurrence = 11
+    col_occurrence_cum_sum = 12
+    col_occurrence_sum_percentage = 13
 
 
 class MarketMoveData:
@@ -105,35 +112,39 @@ class MarketMoveData:
 
 
 def entry_condition_for_up_move(
-        slope: float,
+        smooth_slope: float,
+        entry_config_smooth_slope_threshold: float,
         momentum: float,
         entry_config_momentum_threshold: float,
         momentum_rate: float,
         entry_config_momentum_rate_threshold: float,
 ) -> bool:
-    return slope > 0 and \
-        momentum >= entry_config_momentum_threshold and \
-        momentum_rate >= entry_config_momentum_rate_threshold
+    return \
+            smooth_slope > entry_config_smooth_slope_threshold and \
+            momentum >= entry_config_momentum_threshold and \
+            momentum_rate >= entry_config_momentum_rate_threshold
 
 
 def entry_condition_for_down_move(
-        slope: float,
+        smooth_slope: float,
+        entry_config_smooth_slope_threshold: float,
         momentum: float,
         entry_config_momentum_threshold: float,
         momentum_rate: float,
         entry_config_momentum_rate_threshold: float,
 ) -> bool:
-    return slope < 0 and \
-        momentum <= -1 * entry_config_momentum_threshold and \
-        momentum_rate <= -1 * entry_config_momentum_rate_threshold
+    return \
+            smooth_slope < -1 * entry_config_smooth_slope_threshold and \
+            momentum <= -1 * entry_config_momentum_threshold and \
+            momentum_rate <= -1 * entry_config_momentum_rate_threshold
 
 
-def cross_over_happened_in_up_move(cur_smooth_price: float, cur_smooth_price_ema: float) -> bool:
-    return cur_smooth_price < cur_smooth_price_ema
-
-
-def cross_over_happened_in_down_move(cur_smooth_price: float, cur_smooth_price_ema: float) -> bool:
-    return cur_smooth_price > cur_smooth_price_ema
+# def cross_over_happened_in_up_move(cur_smooth_price: float, cur_smooth_price_ema: float) -> bool:
+#     return cur_smooth_price < cur_smooth_price_ema
+#
+#
+# def cross_over_happened_in_down_move(cur_smooth_price: float, cur_smooth_price_ema: float) -> bool:
+#     return cur_smooth_price > cur_smooth_price_ema
 
 
 def trail_sl_in_upward_expected_move(cur_tick_price: float, sl_diff: float, trailing_sl: float) -> float:
@@ -150,6 +161,16 @@ def sl_hit_in_upward_expected_move(tick_price: float, trailing_sl: float):
 
 def sl_hit_in_downward_expected_move(tick_price: float, trailing_sl: float):
     return tick_price >= trailing_sl
+
+
+def hit_fixed_point_diff_target_in_up_move(
+        cur_tick_price, start_tick_price, fix_point_diff_target) -> bool:
+    return cur_tick_price >= start_tick_price + fix_point_diff_target
+
+
+def hit_fixed_point_diff_target_in_down_move(
+        cur_tick_price, start_tick_price, fix_point_diff_target) -> bool:
+    return cur_tick_price <= start_tick_price - fix_point_diff_target
 
 
 def get_market_moves_for_day(
@@ -183,30 +204,36 @@ def get_market_moves_for_day(
         price_info: PriceDataPerTick = price_list[i]
 
         tm: time = price_info['tm']
+        if tm < config.min_entry_time:
+            i += 1
+            continue
+
         tick_price: float = price_info['tick_price']
         slope: float = price_info['slope']
+        smooth_slope: float = price_info['smooth_slope']
         momentum: float = price_info['momentum']
         momentum_rate: float = price_info['momentum_rate']
 
-        if entry_condition_for_up_move(slope, momentum, config.entry_config_momentum_threshold,
+        if entry_condition_for_up_move(smooth_slope, config.entry_config_smooth_slope_threshold,
+                                       momentum, config.entry_config_momentum_threshold,
                                        momentum_rate, config.entry_config_momentum_rate_threshold):
             start_tm: time = tm
             start_tick_price: float = tick_price
             trailing_sl: float = start_tick_price - config.sl
 
-            exit_reason = exit_reason_crossover
+            exit_reason = None
             j = i + 1
             while j < n:
                 cur_tick_price = price_list[j]['tick_price']
-                cur_smooth_price = price_list[j]['smooth_price']
-                cur_smooth_price_ema = price_list[j]['smooth_price_ema']
 
                 trailing_sl = trail_sl_in_upward_expected_move(cur_tick_price, config.sl, trailing_sl)
                 if sl_hit_in_upward_expected_move(cur_tick_price, trailing_sl):
                     exit_reason = exit_reason_sl_hit
                     break
 
-                if cross_over_happened_in_up_move(cur_smooth_price, cur_smooth_price_ema):
+                if hit_fixed_point_diff_target_in_up_move(
+                        cur_tick_price, start_tick_price, config.fix_point_diff_target):
+                    exit_reason = exit_reason_fix_target_achieved
                     break
 
                 j += 1
@@ -216,7 +243,7 @@ def get_market_moves_for_day(
 
             end_time: time = price_list[j]['tm']
             end_tick_price: float = price_list[j]['tick_price']
-            delta = price_list[j]['tick_price'] - start_tick_price
+            delta = end_tick_price - start_tick_price
 
             res.append(MarketMoveData(
                 date=day,
@@ -230,25 +257,26 @@ def get_market_moves_for_day(
             ))
 
             i = j + 1
-        elif entry_condition_for_down_move(slope, momentum, config.entry_config_momentum_threshold,
+        elif entry_condition_for_down_move(smooth_slope, config.entry_config_smooth_slope_threshold,
+                                           momentum, config.entry_config_momentum_threshold,
                                            momentum_rate, config.entry_config_momentum_rate_threshold):
             start_tm: time = tm
             start_tick_price: float = tick_price
             trailing_sl: float = start_tick_price + config.sl
 
-            exit_reason = exit_reason_crossover
+            exit_reason = None
             j = i + 1
             while j < n:
                 cur_tick_price = price_list[j]['tick_price']
-                cur_smooth_price = price_list[j]['smooth_price']
-                cur_smooth_price_ema = price_list[j]['smooth_price_ema']
 
                 trailing_sl = trail_sl_in_downward_expected_move(cur_tick_price, config.sl, trailing_sl)
                 if sl_hit_in_downward_expected_move(cur_tick_price, trailing_sl):
                     exit_reason = exit_reason_sl_hit
                     break
 
-                if cross_over_happened_in_down_move(cur_smooth_price, cur_smooth_price_ema):
+                if hit_fixed_point_diff_target_in_down_move(
+                        cur_tick_price, start_tick_price, config.fix_point_diff_target):
+                    exit_reason = exit_reason_fix_target_achieved
                     break
 
                 j += 1
@@ -318,6 +346,7 @@ def clean_sheet(absolute_file_path, workbook, sheet):
         sheet.cell(row=row, column=Input.col_entry_price).value = None
         sheet.cell(row=row, column=Input.col_exit_price).value = None
         sheet.cell(row=row, column=Input.col_move).value = None
+        sheet.cell(row=row, column=Input.col_exit_reason).value = None
 
         sheet.cell(row=row, column=Input.col_momentum_buckets).value = None
         sheet.cell(row=row, column=Input.col_occurrence).value = None
@@ -339,6 +368,7 @@ def write_move_data(absolute_file_path, workbook, sheet, market_moves: List[Mark
         entry_point = market_move_dict['start_point']
         exit_point = market_move_dict['end_point']
         delta = market_move_dict['delta']
+        exit_reason = market_move_dict['exit_reason']
 
         sheet.cell(row=cur_row, column=Input.col_date, value=date)
         sheet.cell(row=cur_row, column=Input.col_entry_time, value=entry_time)
@@ -347,6 +377,7 @@ def write_move_data(absolute_file_path, workbook, sheet, market_moves: List[Mark
         sheet.cell(row=cur_row, column=Input.col_entry_price, value=entry_point)
         sheet.cell(row=cur_row, column=Input.col_exit_price, value=exit_point)
         sheet.cell(row=cur_row, column=Input.col_move, value=delta)
+        sheet.cell(row=cur_row, column=Input.col_exit_reason, value=exit_reason)
 
         cur_row += 1
 
@@ -386,6 +417,9 @@ def save_in_output_xlsx_sheet(market_moves: List[MarketMoveData], momentum_distr
 
 def main():
     market_moves: List[MarketMoveData] = simulate_momentum_analysis(Config(), Input())
+
+    # print(f'market_moves: {market_moves}')
+
     move_deltas = [market_move.delta for market_move in market_moves]
     momentum_distribution: dict = get_occurrence_distribution(
         move_deltas,
