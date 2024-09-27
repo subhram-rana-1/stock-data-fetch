@@ -22,13 +22,15 @@ def save_nifty_ltp_to_db(ws, ticks):
     stock_data: TickerData = ticks[0]
     current_nifty_point: float = stock_data['last_price']
 
+    print(f'starting --> NIFTY [{now_ist()}] : {current_nifty_point}')
+
     nifty_price: NiftyPrice = NiftyPrice(
         timestamp=current_ist_timestamp(),
         tick_price=current_nifty_point,
     )
     nifty_price.save()
 
-    print(f'NIFTY [{now_ist()}] : {current_nifty_point}')
+    print(f'done --> NIFTY [{now_ist()}] : {current_nifty_point}')
 
 
 def start_fetching_nifty_price_and_inserting_into_db():

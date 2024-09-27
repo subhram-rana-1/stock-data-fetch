@@ -22,13 +22,15 @@ def save_banknifty_ltp_to_db(ws, ticks):
     stock_data: TickerData = ticks[0]
     current_banknifty_point = stock_data['last_price']
 
+    print(f'starting --> BANKNIFTY[{now_ist()}] : {current_banknifty_point}')
+
     banknifty_price: BankNiftyPrice = BankNiftyPrice(
         timestamp=current_ist_timestamp(),
         tick_price=current_banknifty_point,
     )
     banknifty_price.save()
 
-    print(f'BANKNIFTY[{now_ist()}] : {current_banknifty_point}')
+    print(f'done --> BANKNIFTY[{now_ist()}] : {current_banknifty_point}')
 
 
 def start_fetching_banknifty_price_and_inserting_into_db():

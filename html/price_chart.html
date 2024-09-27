@@ -37,12 +37,12 @@
       const url = "http://localhost:8888/api/price";
       const params = new URLSearchParams({
         market: "NIFTY",
-        from_date: "2024-09-19",
-        to_date: "2024-09-19",
+        from_date: "2024-09-24",
+        to_date: "2024-09-24",
         // from_time: "9:16:00",
         // to_time: "14:45:00",
         from_time: "09:15:00",
-        to_time: "15:30:00",
+        to_time: "14:53:00",
       });
 
         try {
@@ -66,21 +66,23 @@
           type: "line",
           data: {
             datasets: [
-              {
-                label: "Tick Price",
-                data: tick_prices,
-                borderColor: "rgba(0, 0, 255, 1)",
-                backgroundColor: "rgba(75, 192, 192, 0.2)",
-                fill: false,
-                borderWidth: 0.5,
-                pointRadius: 1,
-              },
+              // {
+              //   label: "Tick Price",
+              //   data: tick_prices,
+              //   borderColor: "rgba(0, 0, 255, 1)",
+              //   backgroundColor: "rgba(75, 192, 192, 0.2)",
+              //   fill: false,
+              //   borderWidth: 0.5,
+              //   pointRadius: 0,
+              // },
               {
                 label: "Smooth Price",
                 data: smooth_prices,
-                borderColor: "rgba(10, 180, 0, 1)",
+                borderColor: "rgba(10, 130, 0, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 fill: false,
+                borderWidth: 0.7,
+                pointRadius: 0,
               },
               {
                 label: "Smooth Price EMA",
@@ -88,6 +90,8 @@
                 borderColor: "rgba(200, 0, 0, 1)",
                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                 fill: false,
+                borderWidth: 0.7,
+                pointRadius: 0,
               },
             ],
           },
