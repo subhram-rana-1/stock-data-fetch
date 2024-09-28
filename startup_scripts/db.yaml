@@ -1,7 +1,8 @@
 version: '3.8'
 
 services:
-  db-mysql:
+  db-mysql-stock:
+    container_name: db-mysql-stock
     image: mysql:8.0
     volumes:
       - /Users/Subhram/my-projects/db-mysql:/var/lib/mysql
