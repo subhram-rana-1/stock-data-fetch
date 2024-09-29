@@ -39,19 +39,19 @@ class Config:
     smooth_momentum_ema_period = configs.smooth_momentum_ema_period
 
     # trading configs
-    min_entry_time = time(9, 16)
-    entry_config_smooth_slope_threshold = 2
-    entry_config_momentum_threshold = 0
-    entry_config_momentum_rate_threshold = 0
-    sl = 12
-    fix_point_diff_target = 5
+    min_entry_time = time(9, 20)
+    entry_config_smooth_slope_threshold = 0.2
+    entry_config_momentum_threshold = 0.4
+    entry_config_momentum_rate_threshold = 0.1
+    sl = 5
+    fix_point_diff_target = 3
 
 
 # INPUTS ----------
 class Input:
     market_type = MarketType.NIFTY
-    start_date_time = datetime(2024, 9, 24, 9, 15, 0)
-    end_date_time = datetime(2024, 9, 24, 14, 53, 0)
+    start_date_time = datetime(2024, 9, 23, 9, 15, 0)
+    end_date_time = datetime(2024, 9, 23, 15, 30, 0)
     # end_date_time = datetime(2024, 9, 19, 15, 29, 0)
 
     momentum_occurrence_distribution_bucket_size = 5
@@ -121,9 +121,8 @@ def entry_condition_for_up_move(
 ) -> bool:
     return \
             smooth_slope >= entry_config_smooth_slope_threshold and \
-            momentum >= entry_config_momentum_threshold
-            # and \
-            # momentum_rate >= entry_config_momentum_rate_threshold
+            momentum >= entry_config_momentum_threshold and \
+            momentum_rate >= entry_config_momentum_rate_threshold
 
 
 def entry_condition_for_down_move(
@@ -136,9 +135,8 @@ def entry_condition_for_down_move(
 ) -> bool:
     return \
             smooth_slope <= -1 * entry_config_smooth_slope_threshold and \
-            momentum <= -1 * entry_config_momentum_threshold
-            # and \
-            # momentum_rate <= -1 * entry_config_momentum_rate_threshold
+            momentum <= -1 * entry_config_momentum_threshold and \
+            momentum_rate <= -1 * entry_config_momentum_rate_threshold
 
 
 def cross_over_happened_in_up_move(cur_smooth_price: float, cur_smooth_price_ema: float) -> bool:
@@ -235,14 +233,14 @@ def get_market_moves_for_day(
                     exit_reason = exit_reason_sl_hit
                     break
 
-                if cross_over_happened_in_up_move(cur_smooth_price, cur_smooth_price_ema):
-                    exit_reason = exit_reason_crossover
-                    break
-
-                # if hit_fixed_point_diff_target_in_up_move(
-                #         cur_tick_price, start_tick_price, config.fix_point_diff_target):
-                #     exit_reason = exit_reason_fix_target_achieved
+                # if cross_over_happened_in_up_move(cur_smooth_price, cur_smooth_price_ema):
+                #     exit_reason = exit_reason_crossover
                 #     break
+
+                if hit_fixed_point_diff_target_in_up_move(
+                        cur_tick_price, start_tick_price, config.fix_point_diff_target):
+                    exit_reason = exit_reason_fix_target_achieved
+                    break
 
                 j += 1
 
@@ -284,14 +282,14 @@ def get_market_moves_for_day(
                     exit_reason = exit_reason_sl_hit
                     break
 
-                if cross_over_happened_in_down_move(cur_smooth_price, cur_smooth_price_ema):
-                    exit_reason = exit_reason_crossover
-                    break
-
-                # if hit_fixed_point_diff_target_in_down_move(
-                #         cur_tick_price, start_tick_price, config.fix_point_diff_target):
-                #     exit_reason = exit_reason_fix_target_achieved
+                # if cross_over_happened_in_down_move(cur_smooth_price, cur_smooth_price_ema):
+                #     exit_reason = exit_reason_crossover
                 #     break
+
+                if hit_fixed_point_diff_target_in_down_move(
+                        cur_tick_price, start_tick_price, config.fix_point_diff_target):
+                    exit_reason = exit_reason_fix_target_achieved
+                    break
 
                 j += 1
 

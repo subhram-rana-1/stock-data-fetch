@@ -133,6 +133,8 @@ def fetch_price(request: http.HttpRequest):
     from_date = datetime.strptime(request.GET['from_date'], date_format_string).date()
     to_date = datetime.strptime(request.GET['to_date'], date_format_string).date()
 
+
+
     from_time = datetime.strptime(request.GET['from_time'], time_format_string).time()
     to_time = datetime.strptime(request.GET['to_time'], time_format_string).time()
 
