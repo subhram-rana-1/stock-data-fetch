@@ -56,7 +56,7 @@ class Input:
 
     momentum_occurrence_distribution_bucket_size = 5
 
-    output_file_relative_path = 'price_app/scripts/momentum_analysis/momentum_analysis_output.xlsx'
+    output_file_relative_path = 'price_app/scripts/momentum_analysis_v1/momentum_analysis_output.xlsx'
     sheet_name = 'momentum'
     clean_sheet = True
 

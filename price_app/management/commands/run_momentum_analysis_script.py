@@ -1,7 +1,7 @@
 import os
 
 from django.core.management.base import BaseCommand
-from price_app.scripts.momentum_analysis import momentum_analysis
+from price_app.scripts.momentum_analysis_v1 import momentum_analysis
 from django.conf import settings
 
 

@@ -434,15 +434,19 @@
             // Chart rendering logic...
             const ctxPriceChart = document.getElementById("priceChart").getContext("2d");
             window.priceChart = new Chart(ctxPriceChart, get_price_chart_object(tick_prices, smooth_prices, smooth_price_emas));
+            x_zoom_pan(priceChart, ctxPriceChart)
 
             const ctxSlopeChart = document.getElementById("slopeChart").getContext("2d");
             slopeChart = new Chart(ctxSlopeChart, get_slope_chart_object(slope, smooth_slope, smooth_slope_ema));
+            x_zoom_pan(priceChart, ctxSlopeChart)
 
             const ctxMomentumChart = document.getElementById("momentumChart").getContext("2d");
             momentumChart = new Chart(ctxMomentumChart, get_momentum_chart_object(momentum));
+            x_zoom_pan(priceChart, ctxMomentumChart)
 
             const ctxMomentumRateChart = document.getElementById("momentumRateChart").getContext("2d");
             momentumRateChart = new Chart(ctxMomentumRateChart, get_momentum_rate_chart_object(momentum_rate));
+            x_zoom_pan(priceChart, ctxMomentumRateChart)
         }
 
         document.getElementById("showChart").addEventListener("click", renderChart);
