@@ -14,8 +14,10 @@ from . import configs
 def fetch_nifty_price_data(
         start_timestamp: datetime,
         to_timestamp: datetime,
+        smooth_price_averaging_method: str,
         smooth_price_period: int,
         smooth_price_ema_period: int,
+        smooth_slope_averaging_method: str,
         smooth_slope_period: int,
         smooth_slope_ema_period: int,
         smooth_momentum_period: int,
@@ -35,8 +37,10 @@ def fetch_nifty_price_data(
     # optionally calculate other data points
     calculate_other_auxiliary_prices(
         price_data,
+        smooth_price_averaging_method,
         smooth_price_period,
         smooth_price_ema_period,
+        smooth_slope_averaging_method,
         smooth_slope_period,
         smooth_slope_ema_period,
         smooth_momentum_period,
@@ -49,8 +53,10 @@ def fetch_nifty_price_data(
 def fetch_banknifty_price_data(
         start_timestamp: datetime,
         to_timestamp: datetime,
+        smooth_price_averaging_method: str,
         smooth_price_period: int,
         smooth_price_ema_period: int,
+        smooth_slope_averaging_method: str,
         smooth_slope_period: int,
         slope_ema_period: int,
         smooth_momentum_period: int,
@@ -70,8 +76,10 @@ def fetch_banknifty_price_data(
     # optionally calculate other data points
     calculate_other_auxiliary_prices(
         price_data,
+        smooth_price_averaging_method,
         smooth_price_period,
         smooth_price_ema_period,
+        smooth_slope_averaging_method,
         smooth_slope_period,
         slope_ema_period,
         smooth_momentum_period,
@@ -90,12 +98,14 @@ def fetch_price_data(
         from_time: time,
         to_time: time,
 
+        smooth_price_averaging_method: str,
         smooth_price_period: int,
         smooth_price_ema_period: int,
+        smooth_slope_averaging_method: str,
         smooth_slope_period: int,
         smooth_slope_ema_period: int,
-        smooth_momentum_period: int,
-        smooth_momentum_ema_period: int,
+        smooth_momentum_period: int = None,
+        smooth_momentum_ema_period: int = None,
 ) -> PriceData:
     start_timestamp = datetime.combine(from_date, from_time) + timedelta(microseconds=0)
     to_timestamp = datetime.combine(to_date, to_time) + timedelta(microseconds=0)
@@ -104,8 +114,10 @@ def fetch_price_data(
         return fetch_nifty_price_data(
             start_timestamp,
             to_timestamp,
+            smooth_price_averaging_method,
             smooth_price_period,
             smooth_price_ema_period,
+            smooth_slope_averaging_method,
             smooth_slope_period,
             smooth_slope_ema_period,
             smooth_momentum_period,
@@ -115,8 +127,10 @@ def fetch_price_data(
         return fetch_banknifty_price_data(
             start_timestamp,
             to_timestamp,
+            smooth_price_averaging_method,
             smooth_price_period,
             smooth_price_ema_period,
+            smooth_slope_averaging_method,
             smooth_slope_period,
             smooth_slope_ema_period,
             smooth_momentum_period,
@@ -150,8 +164,10 @@ def fetch_price(request: http.HttpRequest):
         MarketType(market_name),
         from_date, to_date,
         from_time, to_time,
+        configs.smooth_price_averaging_method,
         smooth_price_period,
         smooth_price_ema_period,
+        configs.smooth_slope_averaging_method,
         smooth_slope_period,
         smooth_slope_ema_period,
         smooth_momentum_period,

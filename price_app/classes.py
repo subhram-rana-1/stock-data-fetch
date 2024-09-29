@@ -67,8 +67,10 @@ def get_price_data_per_tick(timestamp: datetime, price: float) -> PriceDataPerTi
 
 def calculate_other_auxiliary_prices(
         price_data: PriceData,
+        smooth_price_averaging_method: str,
         smooth_price_period: int,
         smooth_price_ema_period: int,
+        smooth_slope_averaging_method: str,
         smooth_slope_period: int,
         smooth_slope_ema_period: int,
         smooth_momentum_period: int,
@@ -77,21 +79,26 @@ def calculate_other_auxiliary_prices(
     if len(price_data['price_list']) == 0:
         return
 
-    calculate_smooth_price(price_data, smooth_price_period)
+    calculate_smooth_price(price_data, smooth_price_averaging_method, smooth_price_period)
     calculate_smooth_price_ema(price_data, smooth_price_ema_period)
 
     calculate_slope(price_data)
-    calculate_smooth_slope(price_data, smooth_slope_period)
+    calculate_smooth_slope(price_data, smooth_slope_averaging_method, smooth_slope_period)
     calculate_smooth_slope_ema(price_data, smooth_slope_ema_period)
 
     calculate_momentum(price_data)
-    calculate_smooth_momentum(price_data, smooth_momentum_period)
-    calculate_smooth_momentum_ema(price_data, smooth_momentum_ema_period)
 
-    calculate_momentum_rate(price_data)
+    if smooth_momentum_period is not None:
+        calculate_smooth_momentum(price_data, smooth_momentum_period)
+
+    if smooth_momentum_ema_period is not None:
+        calculate_smooth_momentum_ema(price_data, smooth_momentum_ema_period)
+
+    if smooth_momentum_period is not None and smooth_momentum_ema_period is not None:
+        calculate_momentum_rate(price_data)
 
 
-def calculate_smooth_price(price_data: PriceData, smooth_price_period: int):
+def calculate_smooth_price(price_data: PriceData, smooth_price_averaging_method: str, smooth_price_period: int):
     price_list = price_data['price_list']
     if price_list[0].get('tick_price') is None:
         raise Exception('tick price is not calculated. Hence '
@@ -99,9 +106,9 @@ def calculate_smooth_price(price_data: PriceData, smooth_price_period: int):
 
     tick_prices = [price['tick_price'] for price in price_list]
 
-    if configs.smooth_price_averaging_method == 'simple':
+    if smooth_price_averaging_method == 'simple':
         smooth_prices = calculate_sma(tick_prices, smooth_price_period)
-    elif configs.smooth_price_averaging_method == 'exponential':
+    elif smooth_price_averaging_method == 'exponential':
         smooth_prices = calculate_ema(tick_prices, smooth_price_period)
     else:
         smooth_prices = calculate_sma(tick_prices, smooth_price_period)
@@ -133,7 +140,7 @@ def calculate_slope(price_data: PriceData):
         price_list[i]['slope'] = price_list[i]['smooth_price'] - price_list[i]['smooth_price_ema']
 
 
-def calculate_smooth_slope(price_data: PriceData, smooth_slope_period: int):
+def calculate_smooth_slope(price_data: PriceData, smooth_slope_averaging_method: str, smooth_slope_period: int):
     price_list = price_data['price_list']
     if price_list[0].get('slope') is None:
         raise Exception('slope is not calculated. Hence '

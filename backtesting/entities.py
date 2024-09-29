@@ -30,11 +30,11 @@ class ChartConfig(ConfigBase):
     def __init__(
             self,
             smooth_price_averaging_method: str,
-            smooth_price_period: float,
-            smooth_price_ema_period: float,
+            smooth_price_period: int,
+            smooth_price_ema_period: int,
             smooth_slope_averaging_method: str,
-            smooth_slope_period: float,
-            smooth_slope_ema_period: float,
+            smooth_slope_period: int,
+            smooth_slope_ema_period: int,
     ):
         self.smooth_price_averaging_method = smooth_price_averaging_method
         self.smooth_price_period = smooth_price_period
