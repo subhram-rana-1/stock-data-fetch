@@ -7,6 +7,10 @@
 * start api server: `chmod +x ./startup_scripts/api-server.sh && ./startup_scripts/api-server.sh`
 * run momentum analysis script: `python manage.py run_momentum_analysis_script`
 
+# Backtesting
+## Momentum v1
+* `python manage.py backtesting_momentum_v1`
+
 # DB data storage location
 * `/Users/Subhram/my-projects/db-mysql`
 
