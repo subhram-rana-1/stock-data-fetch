@@ -9,7 +9,7 @@
 
 # Backtesting
 ## Momentum v1
-* `python manage.py backtesting_momentum_v1`
+* `chmod +x ./startup_scripts/backtesting/momentum_v1.sh && ./startup_scripts/backtesting/momentum_v1.sh`
 
 # DB data storage location
 * `/Users/Subhram/my-projects/db-mysql`
