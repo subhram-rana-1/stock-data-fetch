@@ -6,7 +6,11 @@ from backtesting.enums import BacktestingStrategy, BacktestingState, Direction, 
 class Backtesting(models.Model):
     market = EnumField(choices=Market.choices(), null=False)
     strategy = EnumField(choices=BacktestingStrategy.choices(), null=False)
-    config = models.TextField(
+    chart_config = models.TextField(
+        null=False,
+        max_length=10000,
+    )
+    trade_config = models.TextField(
         null=False,
         max_length=10000,
     )
@@ -18,9 +22,9 @@ class Backtesting(models.Model):
 
     state = EnumField(choices=BacktestingState.choices(), null=False)
 
-    winning_trade_count = models.IntegerField(null=False)
-    loosing_trade_count = models.IntegerField(null=False)
-    success_rate = models.DecimalField(null=False, decimal_places=2, max_digits=10)
+    winning_trade_count = models.IntegerField(null=True)
+    loosing_trade_count = models.IntegerField(null=True)
+    success_rate = models.DecimalField(null=True, decimal_places=2, max_digits=10)
 
     class Meta:
         db_table = 'backtesting'

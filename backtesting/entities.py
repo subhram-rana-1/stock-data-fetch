@@ -1,9 +1,75 @@
 import json
 from typing import List
 from datetime import date, time
-
+from abc import ABC, abstractmethod
 from backtesting.enums import Market
 from backtesting.models import Trade, Backtesting, DailyBacktesting
+
+
+class ConfigBase(ABC):
+    @abstractmethod
+    def _to_dict(self) -> dict:
+        ...
+
+    @classmethod
+    @abstractmethod
+    def _from_dict(cls, my_dict: dict):
+        ...
+
+    @abstractmethod
+    def to_json(self) -> str:
+        ...
+
+    @staticmethod
+    @abstractmethod
+    def from_string(meta: str):
+        ...
+
+
+class ChartConfig(ConfigBase):
+    def __init__(
+            self,
+            smooth_price_averaging_method: str,
+            smooth_price_period: float,
+            smooth_price_ema_period: float,
+            smooth_slope_averaging_method: str,
+            smooth_slope_period: float,
+            smooth_slope_ema_period: float,
+    ):
+        self.smooth_price_averaging_method = smooth_price_averaging_method
+        self.smooth_price_period = smooth_price_period
+        self.smooth_price_ema_period = smooth_price_ema_period
+        self.smooth_slope_averaging_method = smooth_slope_averaging_method
+        self.smooth_slope_period = smooth_slope_period
+        self.smooth_slope_ema_period = smooth_slope_ema_period
+
+    def _to_dict(self) -> dict:
+        return {
+            'smooth_price_averaging_method': self.smooth_price_averaging_method,
+            'smooth_price_period': self.smooth_price_period,
+            'smooth_price_ema_period': self.smooth_price_ema_period,
+            'smooth_slope_averaging_method': self.smooth_slope_averaging_method,
+            'smooth_slope_period': self.smooth_slope_period,
+            'smooth_slope_ema_period': self.smooth_slope_ema_period,
+        }
+
+    @classmethod
+    def _from_dict(cls, my_dict: dict):
+        return ChartConfig(
+            my_dict['smooth_price_averaging_method'],
+            my_dict['smooth_price_period'],
+            my_dict['smooth_price_ema_period'],
+            my_dict['smooth_slope_averaging_method'],
+            my_dict['smooth_slope_period'],
+            my_dict['smooth_slope_ema_period'],
+        )
+
+    def to_json(self) -> str:
+        return json.dumps(self._to_dict())
+
+    @staticmethod
+    def from_string(meta: str):
+        return ChartConfig._from_dict(json.loads(meta))
 
 
 class EntryCondition:
@@ -37,7 +103,7 @@ class EntryCondition:
         )
 
 
-class TradeConfig:
+class TradeConfig(ConfigBase):
     def __init__(
             self,
             trend_line_time_period_in_sec: int,
@@ -46,7 +112,7 @@ class TradeConfig:
         self.trend_line_time_period_in_sec = trend_line_time_period_in_sec
         self.entry_conditions = entry_conditions
 
-    def to_dict(self):
+    def _to_dict(self):
         return {
             'trend_line_time_period_in_sec': self.trend_line_time_period_in_sec,
             'entry_conditions': [
@@ -56,7 +122,7 @@ class TradeConfig:
         }
 
     @classmethod
-    def from_dict(cls, my_dict: dict):
+    def _from_dict(cls, my_dict: dict):
         return TradeConfig(
             my_dict['trend_line_time_period_in_sec'],
             [EntryCondition.from_dict(entry_condition)
@@ -64,11 +130,11 @@ class TradeConfig:
         )
 
     def to_json(self) -> str:
-        return json.dumps(self.to_dict())
+        return json.dumps(self._to_dict())
 
     @staticmethod
     def from_string(meta: str):
-        return TradeConfig.from_dict(json.loads(meta))
+        return TradeConfig._from_dict(json.loads(meta))
 
 
 class BacktestingInput:
@@ -79,14 +145,18 @@ class BacktestingInput:
             start_time: time,
             end_date: date,
             end_time: time,
+            chart_config: ChartConfig,
             trade_config: TradeConfig,
+            purpose: str = None,
     ):
         self.market = market
         self.start_date = start_date
         self.start_time = start_time
         self.end_date = end_date
         self.end_time = end_time
+        self.chart_config = chart_config
         self.trade_config = trade_config
+        self.purpose = purpose
 
 
 class DailyBacktestingResult:
@@ -108,12 +178,12 @@ class BacktestingResult:
     def __init__(
             self,
             back_testing: Backtesting,
-            daily_back_testings: List[DailyBacktestingResult],
+            daily_back_testing_results: List[DailyBacktestingResult],
     ):
         self.back_testing = back_testing
-        self.daily_back_testings = daily_back_testings
+        self.daily_back_testing_results = daily_back_testing_results
 
     def save_to_db(self):
         self.back_testing.mark_completed()
-        for daily_back_testing in self.daily_back_testings:
-            daily_back_testing.save_to_db()
+        for daily_back_testing_result in self.daily_back_testing_results:
+            daily_back_testing_result.save_to_db()
