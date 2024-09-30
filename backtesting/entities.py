@@ -228,3 +228,10 @@ class BacktestingResult:
         self.back_testing.mark_completed()
         for daily_back_testing_result in self.daily_back_testing_results:
             daily_back_testing_result.save_to_db()
+
+
+class LinearRegressionLine:
+    def __init__(self, m: float, c: float, variance: float):
+        self.m = m
+        self.c = c
+        self.variance = variance

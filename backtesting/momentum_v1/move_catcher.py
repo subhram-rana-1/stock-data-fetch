@@ -1,16 +1,24 @@
+from datetime import time, datetime, timedelta
 from abc import ABC, abstractmethod
 from typing import List
-from backtesting.entities import TradeConfig
+from backtesting.entities import TradeConfig, LinearRegressionLine
 from backtesting.enums import Direction
 from backtesting.models import Trade
+from backtesting.utils import get_linear_regression_result
 from price_app.classes import PriceDataPerTick
 
 
-class Trendline:
+class Trendline(LinearRegressionLine):
     def __init__(self, m: float, c: float, variance: float):
-        self.m = m
-        self.c = c
-        self.variance = variance
+        super().__init__(m, c, variance)
+
+    @classmethod
+    def from_linear_regression_line(cls, linear_regression_line: LinearRegressionLine):
+        return Trendline(
+            linear_regression_line.m,
+            linear_regression_line.c,
+            linear_regression_line.variance,
+        )
 
 
 class IMoveCatcher(ABC):
@@ -36,9 +44,30 @@ class IMoveCatcher(ABC):
     def calculate_gain(self, trade: Trade) -> Trade:
         ...
 
-    def calculate_trend_line(self) -> Trendline:
-        # todo
-        ...
+    def _get_index_for_start_time(self, price_list: List[PriceDataPerTick], i: int, start_time: time) -> int:
+        lo = 0
+        hi = i
+        while lo != hi:
+            mid: int = lo+int((hi-lo)/2)
+            if price_list[mid]['tm'] >= start_time:
+                hi = mid
+            else:
+                lo = mid + 1
+
+        return lo
+
+    def calculate_trend_line(self, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) -> Trendline:
+        end_time: time = price_list[i]['tm']
+
+        today = datetime.today()
+        end_time_as_datetime = datetime.combine(today, end_time)
+        start_time_as_datetime = end_time_as_datetime - timedelta(seconds=trade_config.trend_line_time_period_in_sec)
+        start_time = start_time_as_datetime.time()
+
+        j = self._get_index_for_start_time(price_list, i, start_time)
+
+        tick_prices = [price['tick_price'] for price in price_list[j:i+1]]
+        return Trendline.from_linear_regression_line(get_linear_regression_result(tick_prices))
 
 
 class UpMoveCatcher(IMoveCatcher):
@@ -46,7 +75,7 @@ class UpMoveCatcher(IMoveCatcher):
         if price_list[i]['tm'] <= trade_config.min_entry_time:
             return False, f"entry not allowed before min entry time {trade_config.min_entry_time}"
 
-        trendline = self.calculate_trend_line()
+        trendline = self.calculate_trend_line(price_list, i, trade_config)
         for entry_condition in trade_config.entry_conditions:
             if trendline.variance <= entry_condition.max_variance and \
                     trendline.m >= entry_condition.min_abs_trend_slope and \
@@ -100,7 +129,7 @@ class DownMoveCatcher(IMoveCatcher):
         if price_list[i]['tm'] <= trade_config.min_entry_time:
             return False, f"entry not allowed before min entry time {trade_config.min_entry_time}"
 
-        trendline = self.calculate_trend_line()
+        trendline = self.calculate_trend_line(price_list, i, trade_config)
         for entry_condition in trade_config.entry_conditions:
             if trendline.variance <= entry_condition.max_variance and \
                     trendline.m <= -1*entry_condition.min_abs_trend_slope and \
