@@ -1,9 +1,10 @@
 import json
 from typing import List
-from datetime import date, time
+from datetime import date, time, datetime
 from abc import ABC, abstractmethod
 from backtesting.enums import Market
 from backtesting.models import Trade, Backtesting, DailyBacktesting
+from price_app.scripts.momentum_analysis.momentum_analysis import time_str_format
 
 
 class ConfigBase(ABC):
@@ -150,7 +151,7 @@ class TradeConfig(ConfigBase):
     def _to_dict(self):
         return {
             'trend_line_time_period_in_sec': self.trend_line_time_period_in_sec,
-            'min_entry_time': self.min_entry_time,
+            'min_entry_time': self.min_entry_time.strftime(time_str_format),
             'entry_conditions': [
                 entry_condition.to_dict()
                 for entry_condition in self.entry_conditions
@@ -162,7 +163,7 @@ class TradeConfig(ConfigBase):
     def _from_dict(cls, my_dict: dict):
         return TradeConfig(
             my_dict['trend_line_time_period_in_sec'],
-            my_dict['min_entry_time'],
+            datetime.strptime(my_dict['min_entry_time'], "%H:%M:%S").time(),
             [EntryCondition.from_dict(entry_condition) for entry_condition in my_dict['entry_conditions']],
             ExitCondition.from_dict(my_dict['exit_condition']),
         )
@@ -171,8 +172,8 @@ class TradeConfig(ConfigBase):
         return json.dumps(self._to_dict())
 
     @staticmethod
-    def from_string(meta: str):
-        return TradeConfig._from_dict(json.loads(meta))
+    def from_string(trade_config_str: str):
+        return TradeConfig._from_dict(json.loads(trade_config_str))
 
 
 class BacktestingInput:
@@ -225,7 +226,7 @@ class BacktestingResult:
         self.daily_back_testing_results = daily_back_testing_results
 
     def save_to_db(self):
-        self.back_testing.mark_completed()
+        self.back_testing.save()
         for daily_back_testing_result in self.daily_back_testing_results:
             daily_back_testing_result.save_to_db()
 

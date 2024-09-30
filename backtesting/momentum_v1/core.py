@@ -73,7 +73,7 @@ def get_daily_backtest_result(
 
                     daily_backtesting_result.trades.append(trade)
                     daily_backtesting_result.daily_back_testing.trade_count += 1
-                    if move_catcher.is_winning_trade(price_list, i, j, trade):
+                    if move_catcher.is_winning_trade(trade, trade_config):
                         daily_backtesting_result.daily_back_testing.winning_trade_count += 1
                     else:
                         daily_backtesting_result.daily_back_testing.loosing_trade_count += 1
@@ -139,7 +139,7 @@ def get_daily_backtest_result_for_up_and_down(
 
 def get_backtest_result(back_test_input: BacktestingInput) -> BacktestingResult:
     back_testing: Backtesting = Backtesting(
-        market=back_test_input.market,
+        market=back_test_input.market.name,
         strategy=BacktestingStrategy.MOMENTUM_V1.name,
         chart_config=back_test_input.chart_config.to_json(),
         trade_config=back_test_input.trade_config.to_json(),
@@ -148,10 +148,11 @@ def get_backtest_result(back_test_input: BacktestingInput) -> BacktestingResult:
         start_time=back_test_input.start_time,
         end_date=back_test_input.end_date,
         end_time=back_test_input.end_time,
-        state=BacktestingState.INITIATED.name,
+        trade_count=0,
+        winning_trade_count=0,
+        loosing_trade_count=0,
+        success_rate=None,
     )
-
-    back_testing.save()
 
     print(f'backtesting initiated: {back_testing.__str__()}')
 
@@ -172,15 +173,26 @@ def get_backtest_result(back_test_input: BacktestingInput) -> BacktestingResult:
 
         print(f'daily backtesting initiated for {day}, start time: {start_time}, end time: {end_time}')
 
-        back_testing_result.daily_back_testing_results.extend(
-            get_daily_backtest_result_for_up_and_down(
-                day,
-                start_time,
-                end_time,
-                back_testing,
-            )
+        daily_backtest_result_for_up_and_down = get_daily_backtest_result_for_up_and_down(
+            day,
+            start_time,
+            end_time,
+            back_testing,
         )
 
+        for daily_backtest_result in daily_backtest_result_for_up_and_down:
+            back_testing_result.back_testing.winning_trade_count += \
+                daily_backtest_result.daily_back_testing.winning_trade_count
+            back_testing_result.back_testing.loosing_trade_count += \
+                daily_backtest_result.daily_back_testing.loosing_trade_count
+            back_testing_result.back_testing.trade_count += \
+                daily_backtest_result.daily_back_testing.trade_count
+
+        back_testing_result.daily_back_testing_results.\
+            extend(daily_backtest_result_for_up_and_down)
+
         day += timedelta(days=1)
+
+    back_testing_result.back_testing.calculate_success_rate()
 
     return back_testing_result

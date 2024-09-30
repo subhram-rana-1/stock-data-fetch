@@ -1,4 +1,5 @@
-from backtesting.entities import TradeConfig, EntryCondition, BacktestingInput, ChartConfig, ExitCondition
+from backtesting.entities import TradeConfig, EntryCondition, BacktestingInput, ChartConfig, ExitCondition, \
+    BacktestingResult
 from backtesting.enums import Market
 from backtesting.momentum_v1 import core
 from datetime import time, date
@@ -12,20 +13,30 @@ def main():
         end_date=date(2024, 9, 27),
         end_time=time(15, 30, 0),
         chart_config=ChartConfig(  # todo
-            smooth_price_averaging_method=,
-            smooth_price_period=,
-            smooth_price_ema_period=,
-            smooth_slope_averaging_method=,
-            smooth_slope_period=,
-            smooth_slope_ema_period=,
+            smooth_price_averaging_method='simple',
+            smooth_price_period=20,
+            smooth_price_ema_period=20 * 5,
+            smooth_slope_averaging_method='simple',
+            smooth_slope_period=10,
+            smooth_slope_ema_period=10,
         ),
         trade_config=TradeConfig(  # todo
-            trend_line_time_period_in_sec=120,
-            min_entry_time=,
+            trend_line_time_period_in_sec=150,
+            min_entry_time=time(9, 20),
             entry_conditions=[
-                EntryCondition(),
-                EntryCondition(),
-                EntryCondition(),
+                EntryCondition(
+                    max_variance=1.1,
+                    min_abs_trend_slope=0.25,
+                    min_abs_price_slope=1.8,
+                    min_abs_price_momentum=0.28,
+                ),
+                EntryCondition(
+                    max_variance=5,
+                    min_abs_trend_slope=0.064,
+                    min_abs_price_slope=0.4,
+                    min_abs_price_momentum=0.15,
+                ),
+                # todo: add more
             ],
             exit_condition=ExitCondition(
                 profit_target_type='fixed',
@@ -36,6 +47,12 @@ def main():
         ),
     )
 
-    backtest_result = core.get_backtest_result(back_test_input)
+    backtest_result: BacktestingResult = core.get_backtest_result(back_test_input)
+    
+    # todo: remove
+    print(backtest_result.back_testing.trade_count)
+    print(backtest_result.back_testing.winning_trade_count)
+    print(backtest_result.back_testing.loosing_trade_count)
+    print(backtest_result.back_testing.success_rate)
 
-    backtest_result.save_to_db()
+    # backtest_result.save_to_db()

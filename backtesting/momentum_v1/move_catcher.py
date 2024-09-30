@@ -36,8 +36,7 @@ class IMoveCatcher(ABC):
         ...
 
     @abstractmethod
-    def is_winning_trade(self, price_list: List[PriceDataPerTick], entry_idx: int, exit_idx: int,
-                         trade_config: TradeConfig) -> bool:
+    def is_winning_trade(self, trade: Trade, trade_config: TradeConfig) -> bool:
         ...
 
     @abstractmethod
@@ -59,12 +58,14 @@ class IMoveCatcher(ABC):
     def calculate_trend_line(self, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) -> Trendline:
         end_time: time = price_list[i]['tm']
 
-        today = datetime.today()
-        end_time_as_datetime = datetime.combine(today, end_time)
-        start_time_as_datetime = end_time_as_datetime - timedelta(seconds=trade_config.trend_line_time_period_in_sec)
-        start_time = start_time_as_datetime.time()
+        # today = datetime.today()
+        # end_time_as_datetime = datetime.combine(today, end_time)
+        # start_time_as_datetime = end_time_as_datetime - timedelta(seconds=trade_config.trend_line_time_period_in_sec)
+        # start_time = start_time_as_datetime.time()
+        # j = self._get_index_for_start_time(price_list, i, start_time)
 
-        j = self._get_index_for_start_time(price_list, i, start_time)
+        datapoint_cnt = trade_config.trend_line_time_period_in_sec * 2
+        j = max(0, i - datapoint_cnt)
 
         tick_prices = [price['tick_price'] for price in price_list[j:i+1]]
         return Trendline.from_linear_regression_line(get_linear_regression_result(tick_prices))
@@ -115,13 +116,13 @@ class UpMoveCatcher(IMoveCatcher):
 
         return False, "no exit condition met"
 
-    def is_winning_trade(self, price_list: List[PriceDataPerTick], entry_idx: int, exit_idx: int,
-                         trade_config: TradeConfig) -> bool:
-        return price_list[exit_idx]['tick_price'] - price_list[entry_idx]['tick_price'] >= \
+    def is_winning_trade(self, trade: Trade, trade_config: TradeConfig) -> bool:
+        return trade.exit_point - trade.entry_point >= \
             trade_config.exit_condition.profit_target_points
 
     def calculate_gain(self, trade: Trade) -> Trade:
-        return trade.exit_point - trade.entry_point
+        trade.gain = trade.exit_point - trade.entry_point
+        return trade
 
 
 class DownMoveCatcher(IMoveCatcher):
@@ -168,13 +169,13 @@ class DownMoveCatcher(IMoveCatcher):
 
         return False, "no exit condition met"
 
-    def is_winning_trade(self, price_list: List[PriceDataPerTick], entry_idx: int, exit_idx: int,
-                         trade_config: TradeConfig) -> bool:
-        return price_list[entry_idx]['tick_price'] - price_list[exit_idx]['tick_price'] >= \
+    def is_winning_trade(self, trade: Trade, trade_config: TradeConfig) -> bool:
+        return trade.entry_point - trade.exit_point >= \
             trade_config.exit_condition.profit_target_points
 
     def calculate_gain(self, trade: Trade) -> Trade:
-        return trade.entry_point - trade.exit_point
+        trade.gain = trade.entry_point - trade.exit_point
+        return trade
 
 
 def new_move_catcher(direction: Direction) -> IMoveCatcher:

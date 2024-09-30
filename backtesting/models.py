@@ -20,8 +20,7 @@ class Backtesting(models.Model):
     end_date = models.DateField(null=False)
     end_time = models.TimeField(null=False)
 
-    state = EnumField(choices=BacktestingState.choices(), null=False)
-
+    trade_count = models.IntegerField(null=True)
     winning_trade_count = models.IntegerField(null=True)
     loosing_trade_count = models.IntegerField(null=True)
     success_rate = models.DecimalField(null=True, decimal_places=2, max_digits=10)
@@ -38,6 +37,9 @@ class Backtesting(models.Model):
 
     def mark_completed(self):
         self.update_state(BacktestingState.COMPLETED)
+
+    def calculate_success_rate(self):
+        self.success_rate = round(int(self.winning_trade_count) / int(self.trade_count) * 100, 2)
 
 
 class DailyBacktesting(models.Model):
