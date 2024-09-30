@@ -49,10 +49,17 @@ class DailyBacktesting(models.Model):
     date = models.DateField(null=False)
     start_time = models.TimeField(null=False)
     end_time = models.TimeField(null=False)
+    expected_direction = EnumField(choices=Direction.choices(), null=False)
     trade_count = models.IntegerField(null=False)
     winning_trade_count = models.IntegerField(null=False)
     loosing_trade_count = models.IntegerField(null=False)
     success_rate = models.DecimalField(null=False, decimal_places=2, max_digits=10)
+
+    def calculate_success_rate(self):
+        if int(self.trade_count) == 0:
+            raise Exception("CODE BUG: DailyBacktesting.trade_count is ZERO. can't calculate success rate")
+
+        self.success_rate = round((int(self.winning_trade_count) / int(self.trade_count)) * 100, 2)
 
     class Meta:
         db_table = 'daily_backtesting'

@@ -18,7 +18,6 @@ def close_websocket_connection(ws, code, reason):
 
 
 def save_banknifty_ltp_to_db(ws, ticks):
-    """TODO: save in DB"""
     stock_data: TickerData = ticks[0]
     current_banknifty_point = stock_data['last_price']
 
