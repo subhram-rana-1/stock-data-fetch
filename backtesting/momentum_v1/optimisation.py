@@ -1,4 +1,5 @@
 from backtesting.entities import BacktestingResult
+from backtesting.enums import BacktestingStrategy
 from backtesting.models import Optimisation
 from datetime import date, time
 from typing import List
@@ -18,6 +19,10 @@ class OptimisationResult:
         for backtesting_result in self.backtesting_results:
             backtesting_result.save_to_db()
 
+    def append_backtesting_result(self, backtesting_result: BacktestingResult):
+        # todo: take lock
+        self.backtesting_results.append(backtesting_result)
+
 
 class DateTimeRange:
     def __init__(
@@ -36,19 +41,23 @@ class DateTimeRange:
 def compute_optimisation_result() -> OptimisationResult:
     optimised_result = OptimisationResult(
         optimisation=Optimisation(
-            strategy=,
-            purpose=,
-            optimised_trade_count=,
-            optimised_winning_trade_count=,
-            optimised_loosing_trade_count=,
-            optimised_success_rate=,
-            optimised_chart_config=,
-            optimised_trade_config=,
-        )
+            strategy=BacktestingStrategy.MOMENTUM_V1.name,
+            purpose="code check 1",
+            optimised_trade_count=0,
+            optimised_winning_trade_count=0,
+            optimised_loosing_trade_count=0,
+            optimised_success_rate=None,
+            optimised_chart_config=None,
+            optimised_trade_config=None,
+        ),
+        backtesting_results=[],
     )
 
     global_success_rate = 0
+    # todo
+
 
 def main():
-    optimisation_result = compute_optimisation_result()
-    optimisation_result.save_to_db()
+    print('opt run')
+    # optimisation_result = compute_optimisation_result()
+    # optimisation_result.save_to_db()

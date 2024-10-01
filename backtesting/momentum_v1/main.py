@@ -8,9 +8,9 @@ from datetime import time, date
 def main():
     back_test_input = BacktestingInput(
         market=Market.NIFTY,
-        start_date=date(2024, 10, 1),
+        start_date=date(2024, 9, 24),
         start_time=time(9, 15, 0),
-        end_date=date(2024, 10, 1),
+        end_date=date(2024, 9, 24),
         end_time=time(15, 30, 0),
         chart_config=ChartConfig(  # todo
             smooth_price_averaging_method='simple',
