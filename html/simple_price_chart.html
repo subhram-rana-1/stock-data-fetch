@@ -56,10 +56,10 @@
     <script>
         // Set default dates and times
         const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
-        document.getElementById("from_date").value = yesterday.toISOString().split('T')[0];
-        document.getElementById("to_date").value = yesterday.toISOString().split('T')[0];
+        // const yesterday = new Date(today);
+        // yesterday.setDate(today.getDate() - 1);
+        document.getElementById("from_date").value = today.toISOString().split('T')[0];
+        document.getElementById("to_date").value = today.toISOString().split('T')[0];
 
         document.getElementById("from_time").value = "09:15";
         document.getElementById("to_time").value = "15:30";

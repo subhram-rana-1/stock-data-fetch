@@ -1,6 +1,6 @@
 from django.urls import path
 
-from backtesting.handlers import delete_back_testing_data
+from backtesting.handlers import delete_back_testing_data, delete_optimisation_data
 
 urlpatterns = [
     path(

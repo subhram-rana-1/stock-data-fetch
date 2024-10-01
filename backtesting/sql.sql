@@ -15,7 +15,7 @@ select trade.date,
 from trade
     join daily_backtesting on trade.daily_backtesting_id=daily_backtesting.id
     join backtesting on backtesting.id=daily_backtesting.backtesting_id
-where backtesting.id=(select id from backtesting order by id limit 1)
+where backtesting.id=(select id from backtesting order by id desc limit 1)
 order by trade.id;
 
 

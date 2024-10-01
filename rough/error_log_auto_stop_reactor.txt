@@ -1,0 +1,139 @@
+Unhandled Error
+Traceback (most recent call last):
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/python/log.py", line 96, in callWithLogger
+    return callWithContext({"system": lp}, func, *args, **kw)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/python/log.py", line 80, in callWithContext
+    return context.call({ILogContext: newCtx}, func, *args, **kw)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/python/context.py", line 117, in callWithContext
+    return self.currentContext().callWithContext(ctx, func, *args, **kw)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/python/context.py", line 82, in callWithContext
+    return func(*args, **kw)
+--- <exception caught here> ---
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/internet/selectreactor.py", line 165, in _doReadOrWrite
+    why = getattr(selectable, method)()
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/internet/tcp.py", line 250, in doRead
+    return self._dataReceived(data)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/internet/tcp.py", line 255, in _dataReceived
+    rval = self.protocol.dataReceived(data)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/protocols/tls.py", line 339, in dataReceived
+    self._flushReceiveBIO()
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/protocols/tls.py", line 305, in _flushReceiveBIO
+    ProtocolWrapper.dataReceived(self, bytes)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/protocols/policies.py", line 110, in dataReceived
+    self.wrappedProtocol.dataReceived(data)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/twisted/websocket.py", line 291, in dataReceived
+    self._dataReceived(data)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/websocket/protocol.py", line 1213, in _dataReceived
+    self.consumeData()
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/websocket/protocol.py", line 1225, in consumeData
+    while self.processData() and self.state != WebSocketProtocol.STATE_CLOSED:
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/websocket/protocol.py", line 1591, in processData
+    fr = self.onFrameEnd()
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/websocket/protocol.py", line 1713, in onFrameEnd
+    self._onMessageEnd()
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/twisted/websocket.py", line 319, in _onMessageEnd
+    self.onMessageEnd()
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/websocket/protocol.py", line 634, in onMessageEnd
+    self._onMessage(payload, self.message_is_binary)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/twisted/websocket.py", line 322, in _onMessage
+    self.onMessage(payload, isBinary)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/kiteconnect/ticker.py", line 70, in onMessage
+    self.factory.on_message(self, payload, is_binary)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/kiteconnect/ticker.py", line 675, in _on_message
+    self.on_ticks(self, self._parse_binary(payload))
+  File "/Users/Subhram/my-projects/stock-data-fetch/stock_data_fetch/banknifty_price_fetch.py", line 30, in save_banknifty_ltp_to_db
+    banknifty_price.save()
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/models/base.py", line 743, in save
+    self.save_base(using=using, force_insert=force_insert,
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/models/base.py", line 780, in save_base
+    updated = self._save_table(
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/models/base.py", line 885, in _save_table
+    results = self._do_insert(cls._base_manager, using, fields, returning_fields, raw)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/models/base.py", line 923, in _do_insert
+    return manager._insert(
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/models/manager.py", line 85, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/models/query.py", line 1301, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/models/sql/compiler.py", line 1441, in execute_sql
+    cursor.execute(sql, params)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/backends/utils.py", line 99, in execute
+    return super().execute(sql, params)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(sql, params, many=False, executor=self._execute)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/backends/utils.py", line 76, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/backends/utils.py", line 85, in _execute
+    return self.cursor.execute(sql, params)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/utils.py", line 90, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/backends/utils.py", line 85, in _execute
+    return self.cursor.execute(sql, params)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/django/db/backends/mysql/base.py", line 73, in execute
+    return self.cursor.execute(query, args)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/MySQLdb/cursors.py", line 179, in execute
+    res = self._query(mogrified_query)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/MySQLdb/cursors.py", line 330, in _query
+    db.query(q)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/MySQLdb/connections.py", line 261, in query
+    _mysql.connection.query(self, query)
+django.db.utils.OperationalError: (1053, 'Server shutdown in progress')
+
+Connection error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+Connection closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+Connection error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+Connection closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+Unhandled Error
+Traceback (most recent call last):
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/internet/defer.py", line 533, in addCallbacks
+    self._runCallbacks()
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/internet/defer.py", line 1074, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/internet/base.py", line 524, in _continueFiring
+    callable(*args, **kwargs)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/internet/base.py", line 848, in disconnectAll
+    _callWithLogger(
+--- <exception caught here> ---
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/python/log.py", line 96, in callWithLogger
+    return callWithContext({"system": lp}, func, *args, **kw)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/python/log.py", line 80, in callWithContext
+    return context.call({ILogContext: newCtx}, func, *args, **kw)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/python/context.py", line 117, in callWithContext
+    return self.currentContext().callWithContext(ctx, func, *args, **kw)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/python/context.py", line 82, in callWithContext
+    return func(*args, **kw)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/internet/tcp.py", line 510, in connectionLost
+    self._commonConnection.connectionLost(self, reason)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/internet/tcp.py", line 328, in connectionLost
+    protocol.connectionLost(reason)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/protocols/tls.py", line 409, in connectionLost
+    ProtocolWrapper.connectionLost(self, reason)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/protocols/policies.py", line 114, in connectionLost
+    self.wrappedProtocol.connectionLost(reason)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/twisted/websocket.py", line 288, in connectionLost
+    self._connectionLost(reason)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/websocket/protocol.py", line 3422, in _connectionLost
+    WebSocketProtocol._connectionLost(self, reason)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/websocket/protocol.py", line 1133, in _connectionLost
+    self._onClose(self.wasClean, WebSocketProtocol.CLOSE_STATUS_CODE_ABNORMAL_CLOSE, "connection was closed uncleanly (%s)" % self.wasNotCleanReason)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/autobahn/twisted/websocket.py", line 331, in _onClose
+    self.onClose(wasClean, code, reason)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/kiteconnect/ticker.py", line 80, in onClose
+    self.factory.on_close(self, code, reason)
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/kiteconnect/ticker.py", line 659, in _on_close
+    self.on_close(self, code, reason)
+  File "/Users/Subhram/my-projects/stock-data-fetch/stock_data_fetch/nifty_price_fetch.py", line 18, in close_websocket_connection
+    ws.stop()
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/kiteconnect/ticker.py", line 560, in stop
+    reactor.stop()
+  File "/Users/Subhram/my-projects/stock-data-fetch/venv/lib/python3.9/site-packages/twisted/internet/base.py", line 794, in stop
+    raise error.ReactorNotRunning("Can't stop reactor that isn't running.")
+twisted.internet.error.ReactorNotRunning: Can't stop reactor that isn't running.
+
+
+
+^CException ignored in: <module 'threading' from '/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/threading.py'>
+Traceback (most recent call last):
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/threading.py", line 1448, in _shutdown
+    lock.acquire()
+KeyboardInterrupt:
