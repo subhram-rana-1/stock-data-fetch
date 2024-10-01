@@ -1,6 +1,7 @@
 import copy
 import threading
-from backtesting.entities import BacktestingResult, BacktestingInput, ChartConfig, TradeConfig, ExitCondition
+from backtesting.entities import BacktestingResult, BacktestingInput, ChartConfig, TradeConfig, ExitCondition, \
+    EntryCondition
 from backtesting.enums import BacktestingStrategy, Market
 from backtesting.models import Optimisation
 from datetime import date, time
@@ -99,6 +100,7 @@ class OptimisationTaskInput:
             time(9, 20),
         ),
     ]
+    trend_line_count = 3
     input_params = [  # todo: add all possible param ranges
         InputParam(
             'chart_config_smooth_price_averaging_method',
@@ -125,9 +127,26 @@ class OptimisationTaskInput:
             [],
         ),
 
-        # ---------------------
-        # todo: add tred line slope configs
-        # ---------------------
+        # --------------------- line slope configs ----------------------
+        # IMPORTANT - keep the relative order of following "entry_condition"
+        # related configs as it is
+        InputParam(
+            'entry_condition_max_variance',
+            [],
+        ),
+        InputParam(
+            'entry_condition_min_abs_trend_slope',
+            [],
+        ),
+        InputParam(
+            'entry_condition_min_abs_price_slope',
+            [],
+        ),
+        InputParam(
+            'entry_condition_min_abs_price_momentum',
+            [],
+        ),
+        # ---------------------------------------------------------------
 
         InputParam(
             'trade_config_exit_condition_profit_target_type',
@@ -146,6 +165,31 @@ class OptimisationTaskInput:
             [],
         ),
     ]
+
+    def get_first_entry_condition_key_index(self) -> int:
+        for i in range(len(self.input_params)):
+            if self.input_params[i].key == 'entry_condition_max_variance':
+                return i
+
+        raise Exception('entry_condition_max_variance key not found in '
+                        'OptimisationTaskInput.input_params')
+
+    @staticmethod
+    def is_first_key_for_entry_condition(key: str) -> bool:
+        return key == 'entry_condition_max_variance'
+
+    @staticmethod
+    def is_last_key_for_entry_condition(key: str) -> bool:
+        return key == 'entry_condition_min_abs_price_momentum'
+
+    @staticmethod
+    def is_key_an_entry_condition_key(key: str) -> bool:
+        return key in [
+            'entry_condition_max_variance',
+            'entry_condition_min_abs_trend_slope',
+            'entry_condition_min_abs_price_slope',
+            'entry_condition_min_abs_price_momentum',
+        ]
 
 
 def optimise_result_with_exclusive_lock(optimisation_result: OptimisationResult):
@@ -206,12 +250,52 @@ def async_perform_backtesting_and_optimise_result(
 
 
 def set_backtest_input_param(
+        optimisation_task_input: OptimisationTaskInput,
         back_test_input: BacktestingInput,
         key: str,
         val: object,
+        trend_line_serial_number: int = None,
 ) -> BacktestingInput:
-    # todo: implement
-    ...
+    if not optimisation_task_input.is_key_an_entry_condition_key(key):
+        if key == 'chart_config_smooth_price_averaging_method':
+            back_test_input.chart_config.smooth_slope_averaging_method = val
+        elif key == 'chart_config_smooth_price_period':
+            back_test_input.chart_config.smooth_price_period = val
+        elif key == 'chart_config_smooth_price_ema_period':
+            back_test_input.chart_config.smooth_price_ema_period = val
+        elif key == 'chart_config_smooth_slope_averaging_method':
+            back_test_input.chart_config.smooth_price_averaging_method = val
+        elif key == 'chart_config_smooth_slope_period':
+            back_test_input.chart_config.smooth_slope_period = val
+        elif key == 'chart_config_smooth_slope_ema_period':
+            back_test_input.chart_config.smooth_slope_ema_period = val
+        elif key == 'trade_config_exit_condition_profit_target_type':
+            back_test_input.trade_config.exit_condition.profit_target_type = val
+        elif key == 'trade_config_exit_condition_profit_target_points':
+            back_test_input.trade_config.exit_condition.profit_target_points = val
+        elif key == 'trade_config_exit_condition_stoploss_type':
+            back_test_input.trade_config.exit_condition.stoploss_type = val
+        elif key == 'trade_config_exit_condition_stoploss_points':
+            back_test_input.trade_config.exit_condition.stoploss_points = val
+    else:
+        if trend_line_serial_number > \
+                len(back_test_input.trade_config.entry_conditions):
+            back_test_input.trade_config.entry_conditions.append(EntryCondition())
+
+        if trend_line_serial_number != len(back_test_input.trade_config.entry_conditions):
+            raise Exception('code bug: '
+                            'trend_line_serial_number != len(back_test_input.trade_config.entry_conditions)')
+
+        if key == 'entry_condition_max_variance':
+            back_test_input.trade_config.entry_conditions[-1].max_variance = val
+        elif key == 'entry_condition_min_abs_trend_slope':
+            back_test_input.trade_config.entry_conditions[-1].min_abs_trend_slope = val
+        elif key == 'entry_condition_min_abs_price_slope':
+            back_test_input.trade_config.entry_conditions[-1].min_abs_price_slope = val
+        elif key == 'entry_condition_min_abs_price_momentum':
+            back_test_input.trade_config.entry_conditions[-1].min_abs_price_momentum = val
+
+    return back_test_input
 
 
 def recursive_compute_back_test_result(
@@ -219,6 +303,7 @@ def recursive_compute_back_test_result(
         i: int,
         back_test_input: BacktestingInput,
         optimised_result: OptimisationResult,
+        trend_line_serial_number: int = None,
 ):
     if i == len(optimisation_task_input.input_params):
         async_perform_backtesting_and_optimise_result(
@@ -229,19 +314,68 @@ def recursive_compute_back_test_result(
 
         return
 
-    for val in optimisation_task_input.input_params[i].values:
-        back_test_input = set_backtest_input_param(
-            back_test_input,
-            optimisation_task_input.input_params[i].key,
-            val,
-        )
+    key = optimisation_task_input.input_params[i].key
+    if not OptimisationTaskInput.is_key_an_entry_condition_key(key):
+        for val in optimisation_task_input.input_params[i].values:
+            back_test_input = set_backtest_input_param(
+                optimisation_task_input,
+                back_test_input,
+                key,
+                val,
+            )
 
-        recursive_compute_back_test_result(
-            optimisation_task_input,
-            i+1,
-            back_test_input,
-            optimised_result,
-        )
+            recursive_compute_back_test_result(
+                optimisation_task_input,
+                i+1,
+                back_test_input,
+                optimised_result,
+            )
+    else:
+        if OptimisationTaskInput.is_last_key_for_entry_condition(key):
+            for val in optimisation_task_input.input_params[i].values:
+                back_test_input = set_backtest_input_param(
+                    optimisation_task_input,
+                    back_test_input,
+                    key,
+                    val,
+                    trend_line_serial_number,
+                )
+
+                if trend_line_serial_number < optimisation_task_input.trend_line_count:
+                    recursive_compute_back_test_result(
+                        optimisation_task_input,
+                        optimisation_task_input.get_first_entry_condition_key_index(),
+                        back_test_input,
+                        optimised_result,
+                        trend_line_serial_number + 1,
+                    )
+                else:
+                    recursive_compute_back_test_result(
+                        optimisation_task_input,
+                        i+1,
+                        back_test_input,
+                        optimised_result,
+                    )
+        elif OptimisationTaskInput.is_first_key_for_entry_condition(key):
+            if trend_line_serial_number is None:
+                trend_line_serial_number = 1
+
+            for val in optimisation_task_input.input_params[i].values:
+                back_test_input = set_backtest_input_param(
+                    optimisation_task_input,
+                    back_test_input,
+                    key,
+                    val,
+                    trend_line_serial_number,
+                )
+
+                recursive_compute_back_test_result(
+                    optimisation_task_input,
+                    i+1,
+                    back_test_input,
+                    optimised_result,
+                    trend_line_serial_number,
+                )
 
 
 def compute_optimisation_result():
