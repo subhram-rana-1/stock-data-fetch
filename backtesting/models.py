@@ -3,7 +3,26 @@ from django_mysql.models import EnumField
 from backtesting.enums import BacktestingStrategy, BacktestingState, Direction, Market
 
 
+class Optimisation(models.Model):
+    strategy = EnumField(choices=BacktestingStrategy.choices(), null=False)
+    purpose = models.TextField(null=True, max_length=10000)
+    optimised_trade_count = models.IntegerField(null=True)
+    optimised_winning_trade_count = models.IntegerField(null=True)
+    optimised_loosing_trade_count = models.IntegerField(null=True)
+    optimised_success_rate = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    optimised_chart_config = models.TextField(null=False, max_length=10000)
+    optimised_trade_config = models.TextField(null=False, max_length=10000)
+
+    class Meta:
+        db_table = 'optimisation'
+
+
 class Backtesting(models.Model):
+    optimisation = models.ForeignKey(
+        Optimisation, on_delete=models.CASCADE,
+        related_name='backtestings', related_query_name='backtesting',
+        null=True,
+    )
     market = EnumField(choices=Market.choices(), null=False)
     strategy = EnumField(choices=BacktestingStrategy.choices(), null=False)
     chart_config = models.TextField(

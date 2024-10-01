@@ -17,3 +17,11 @@ from trade
     join backtesting on backtesting.id=daily_backtesting.backtesting_id
 where backtesting.id=(select id from backtesting order by id limit 1)
 order by trade.id;
+
+
+-- If migration deleted manually from DB, then use the following query
+insert into django_migrations
+    (id, app, name, applied)
+values
+    (35, 'price_app', '0001_initial', '2024-10-01 04:30:27.709948');
+
