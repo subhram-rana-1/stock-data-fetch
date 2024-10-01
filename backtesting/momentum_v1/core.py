@@ -119,7 +119,7 @@ def get_daily_backtest_result_for_up_and_down(
             date=day,
             start_time=start_time,
             end_time=end_time,
-            expected_direction=direction,
+            expected_direction=direction.name,
             trade_count=0,
             winning_trade_count=0,
             loosing_trade_count=0,

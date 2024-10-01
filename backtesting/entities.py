@@ -9,7 +9,7 @@ from price_app.scripts.momentum_analysis.momentum_analysis import time_str_forma
 
 class ConfigBase(ABC):
     @abstractmethod
-    def _to_dict(self) -> dict:
+    def to_dict(self) -> dict:
         ...
 
     @classmethod
@@ -44,7 +44,7 @@ class ChartConfig(ConfigBase):
         self.smooth_slope_period = smooth_slope_period
         self.smooth_slope_ema_period = smooth_slope_ema_period
 
-    def _to_dict(self) -> dict:
+    def to_dict(self) -> dict:
         return {
             'smooth_price_averaging_method': self.smooth_price_averaging_method,
             'smooth_price_period': self.smooth_price_period,
@@ -66,7 +66,7 @@ class ChartConfig(ConfigBase):
         )
 
     def to_json(self) -> str:
-        return json.dumps(self._to_dict())
+        return json.dumps(self.to_dict())
 
     @staticmethod
     def from_string(meta: str):
@@ -148,7 +148,7 @@ class TradeConfig(ConfigBase):
         self.entry_conditions = entry_conditions
         self.exit_condition = exit_condition
 
-    def _to_dict(self):
+    def to_dict(self):
         return {
             'trend_line_time_period_in_sec': self.trend_line_time_period_in_sec,
             'min_entry_time': self.min_entry_time.strftime(time_str_format),
@@ -169,7 +169,7 @@ class TradeConfig(ConfigBase):
         )
 
     def to_json(self) -> str:
-        return json.dumps(self._to_dict())
+        return json.dumps(self.to_dict())
 
     @staticmethod
     def from_string(trade_config_str: str):
@@ -196,6 +196,13 @@ class BacktestingInput:
         self.chart_config = chart_config
         self.trade_config = trade_config
         self.purpose = purpose
+
+    def get_config_dict(self) -> dict:
+        return {
+            'market': self.market.name,
+            'chart_config': self.chart_config.to_dict(),
+            'trade_config': self.trade_config.to_dict(),
+        }
 
 
 class DailyBacktestingResult:

@@ -48,11 +48,5 @@ def main():
     )
 
     backtest_result: BacktestingResult = core.get_backtest_result(back_test_input)
-    
-    # todo: remove
-    print(backtest_result.back_testing.trade_count)
-    print(backtest_result.back_testing.winning_trade_count)
-    print(backtest_result.back_testing.loosing_trade_count)
-    print(backtest_result.back_testing.success_rate)
 
-    # backtest_result.save_to_db()
+    backtest_result.save_to_db()
