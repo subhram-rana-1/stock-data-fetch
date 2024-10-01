@@ -8,4 +8,9 @@ urlpatterns = [
         delete_back_testing_data,
         name='delete-backtestings',
     ),
+    path(
+        'delete-optimisations',
+        delete_optimisation_data,
+        name='delete-optimisations',
+    ),
 ]
