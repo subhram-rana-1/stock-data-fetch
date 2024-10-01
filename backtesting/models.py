@@ -16,6 +16,11 @@ class Optimisation(models.Model):
     class Meta:
         db_table = 'optimisation'
 
+    def calculate_success_rate(self):
+        if int(self.optimised_trade_count) > 0:
+            self.optimised_success_rate = \
+                round(int(self.optimised_winning_trade_count) / int(self.optimised_trade_count) * 100, 2)
+
 
 class Backtesting(models.Model):
     optimisation = models.ForeignKey(

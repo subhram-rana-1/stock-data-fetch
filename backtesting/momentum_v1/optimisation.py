@@ -1,8 +1,12 @@
-from backtesting.entities import BacktestingResult
-from backtesting.enums import BacktestingStrategy
+import copy
+import threading
+from backtesting.entities import BacktestingResult, BacktestingInput, ChartConfig, TradeConfig, ExitCondition
+from backtesting.enums import BacktestingStrategy, Market
 from backtesting.models import Optimisation
 from datetime import date, time
+from backtesting.momentum_v1 import core
 from typing import List
+import time as tm
 
 
 class OptimisationResult:
@@ -14,31 +18,233 @@ class OptimisationResult:
         self.optimisation = optimisation
         self.backtesting_results = backtesting_results
 
+    def calculate_success_rate(self):
+        self.optimisation.calculate_success_rate()
+
+    def add_back_testing_result(self, backtest_result: BacktestingResult):
+        self.backtesting_results.append(backtest_result)
+
+    def get_summary(self) -> dict:
+        return {
+            'trade_count': self.optimisation.optimised_trade_count,
+            'winning_trade_count': self.optimisation.optimised_winning_trade_count,
+            'loosing_trade_count': self.optimisation.optimised_loosing_trade_count,
+            'success_rate': self.optimisation.optimised_success_rate,
+            'chart_config': ChartConfig.from_string(
+                self.optimisation.optimised_chart_config,
+            ).to_dict(),
+            'trade_config': TradeConfig.from_string(
+                self.optimisation.optimised_trade_config,
+            ).to_dict(),
+        }
+
     def save_to_db(self):
         self.optimisation.save()
         for backtesting_result in self.backtesting_results:
             backtesting_result.save_to_db()
 
-    def append_backtesting_result(self, backtesting_result: BacktestingResult):
-        # todo: take lock
-        self.backtesting_results.append(backtesting_result)
+
+# --------- constants -------------
+LOCK_ON_OPTIMISATION_RESULT = threading.Lock
+OPTIMISATION_RESULT: OptimisationResult = None
+LOCK_ON_WAIT_GROUP = threading.Lock
+WAIT_GROUP = 0
+# ---------------------------------
+
+
+def increase_wait_group(delta: int):
+    global WAIT_GROUP, LOCK_ON_OPTIMISATION_RESULT
+
+    with LOCK_ON_OPTIMISATION_RESULT:
+        WAIT_GROUP += delta
+
+
+def decrease_wait_group(delta: int):
+    global WAIT_GROUP, LOCK_ON_OPTIMISATION_RESULT
+
+    with LOCK_ON_OPTIMISATION_RESULT:
+        WAIT_GROUP -= delta
 
 
 class DateTimeRange:
     def __init__(
             self,
             start_date: date,
-            end_date: date,
             start_time: time,
+            end_date: date,
             end_time: time,
+            trading_start_time: time,
     ):
         self.start_date = start_date
-        self.end_date = end_date
         self.start_time = start_time
+        self.end_date = end_date
         self.end_time = end_time
+        self.trading_start_time = trading_start_time
 
 
-def compute_optimisation_result() -> OptimisationResult:
+class InputParam:
+    def __init__(self, key, values):
+        self.key = key
+        self.values = values
+
+
+class OptimisationTaskInput:
+    market = Market.NIFTY
+    date_time_ranges = [
+        DateTimeRange(
+            date(2024, 10, 1),
+            time(9, 15),
+            date(2024, 10, 1),
+            time(15, 30),
+            time(9, 20),
+        ),
+    ]
+    input_params = [  # todo: add all possible param ranges
+        InputParam(
+            'chart_config_smooth_price_averaging_method',
+            ['simple', 'exponential'],
+        ),
+        InputParam(
+            'chart_config_smooth_price_period',
+            [],
+        ),
+        InputParam(
+            'chart_config_smooth_price_ema_period',
+            [],
+        ),
+        InputParam(
+            'chart_config_smooth_slope_averaging_method',
+            ['simple', 'exponential'],
+        ),
+        InputParam(
+            'chart_config_smooth_slope_period',
+            [],
+        ),
+        InputParam(
+            'chart_config_smooth_slope_ema_period',
+            [],
+        ),
+
+        # ---------------------
+        # todo: add tred line slope configs
+        # ---------------------
+
+        InputParam(
+            'trade_config_exit_condition_profit_target_type',
+            [],
+        ),
+        InputParam(
+            'trade_config_exit_condition_profit_target_points',
+            [],
+        ),
+        InputParam(
+            'trade_config_exit_condition_stoploss_type',
+            [],
+        ),
+        InputParam(
+            'trade_config_exit_condition_stoploss_points',
+            [],
+        ),
+    ]
+
+
+def optimise_result_with_exclusive_lock(optimisation_result: OptimisationResult):
+    global OPTIMISATION_RESULT
+
+    with LOCK_ON_OPTIMISATION_RESULT:
+        if optimisation_result.optimisation.optimised_success_rate is None:
+            raise Exception('code bug: '
+                            'optimisation_result.optimisation.optimised_success_rate is None')
+
+        if OPTIMISATION_RESULT is None:
+            OPTIMISATION_RESULT = copy.deepcopy(optimisation_result)
+        elif OPTIMISATION_RESULT.optimisation.optimised_success_rate < \
+                optimisation_result.optimisation.optimised_success_rate:
+            OPTIMISATION_RESULT.optimisation.optimised_success_rate = \
+                optimisation_result.optimisation.optimised_success_rate
+
+
+def perform_backtesting_and_optimise_result(
+    optimisation_task_input: OptimisationTaskInput,
+    back_test_input: BacktestingInput,
+    optimised_result: OptimisationResult,
+):
+    for date_time_range in optimisation_task_input.date_time_ranges:
+        back_test_input.start_date = date_time_range.start_date
+        back_test_input.start_time = date_time_range.start_time
+        back_test_input.end_date = date_time_range.end_date
+        back_test_input.end_time = date_time_range.end_time
+
+        backtest_result = core.get_backtest_result(back_test_input)
+
+        optimised_result.add_back_testing_result(backtest_result)
+        optimised_result.optimisation.optimised_trade_count += \
+            backtest_result.back_testing.trade_count
+        optimised_result.optimisation.optimised_winning_trade_count += \
+            backtest_result.back_testing.winning_trade_count
+        optimised_result.optimisation.optimised_loosing_trade_count += \
+            backtest_result.back_testing.loosing_trade_count
+
+    optimised_result.calculate_success_rate()
+    optimise_result_with_exclusive_lock(optimised_result)
+
+    decrease_wait_group(1)
+
+
+def async_perform_backtesting_and_optimise_result(
+        optimisation_task_input: OptimisationTaskInput,
+        back_test_input: BacktestingInput,
+        optimised_result: OptimisationResult,
+):
+    increase_wait_group(1)
+
+    thread = threading.Thread(
+        target=perform_backtesting_and_optimise_result,
+        args=(optimisation_task_input, back_test_input, optimised_result),
+    )
+    thread.start()
+
+
+def set_backtest_input_param(
+        back_test_input: BacktestingInput,
+        key: str,
+        val: object,
+) -> BacktestingInput:
+    # todo: implement
+    ...
+
+
+def recursive_compute_back_test_result(
+        optimisation_task_input: OptimisationTaskInput,
+        i: int,
+        back_test_input: BacktestingInput,
+        optimised_result: OptimisationResult,
+):
+    if i == len(optimisation_task_input.input_params):
+        async_perform_backtesting_and_optimise_result(
+            optimisation_task_input,
+            copy.deepcopy(back_test_input),  # important
+            copy.deepcopy(optimised_result),  # important
+        )
+
+        return
+
+    for val in optimisation_task_input.input_params[i].values:
+        back_test_input = set_backtest_input_param(
+            back_test_input,
+            optimisation_task_input.input_params[i].key,
+            val,
+        )
+
+        recursive_compute_back_test_result(
+            optimisation_task_input,
+            i+1,
+            back_test_input,
+            optimised_result,
+        )
+
+
+def compute_optimisation_result():
     optimised_result = OptimisationResult(
         optimisation=Optimisation(
             strategy=BacktestingStrategy.MOMENTUM_V1.name,
@@ -46,18 +252,37 @@ def compute_optimisation_result() -> OptimisationResult:
             optimised_trade_count=0,
             optimised_winning_trade_count=0,
             optimised_loosing_trade_count=0,
-            optimised_success_rate=None,
+            optimised_success_rate=0,
             optimised_chart_config=None,
             optimised_trade_config=None,
         ),
         backtesting_results=[],
     )
 
-    global_success_rate = 0
-    # todo
+    back_test_input = BacktestingInput(
+        chart_config=ChartConfig(),
+        trade_config=TradeConfig(
+            entry_conditions=[],
+            exit_condition=ExitCondition(),
+        ),
+    )
+
+    recursive_compute_back_test_result(
+        OptimisationTaskInput(),
+        0,
+        back_test_input,
+        optimised_result,
+    )
+
+    while WAIT_GROUP != 0:
+        print('still processing ...')
+        tm.sleep(3)
+
+    return
 
 
 def main():
-    print('opt run')
-    # optimisation_result = compute_optimisation_result()
-    # optimisation_result.save_to_db()
+    compute_optimisation_result()
+
+    print(OPTIMISATION_RESULT.get_summary())
+    # OPTIMISATION_RESULT.save_to_db()
