@@ -68,7 +68,7 @@ class IMoveCatcher(ABC):
         j = max(0, i - datapoint_cnt)
 
         tick_prices = [price['tick_price'] for price in price_list[j:i+1]]
-        return Trendline.from_linear_regression_line(get_linear_regression_result(tick_prices))
+        return Trendline.from_linear_regression_line(get_linear_regression_result(tick_prices, 10))
 
 
 class UpMoveCatcher(IMoveCatcher):

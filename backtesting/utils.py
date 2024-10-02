@@ -3,7 +3,7 @@ import statistics
 from backtesting.entities import LinearRegressionLine
 
 
-def get_linear_regression_result(nums: List[float]) -> LinearRegressionLine:
+def get_linear_regression_result_util(nums: List[float]) -> LinearRegressionLine:
     n = len(nums)
     x_vals = list(range(n))  # Assuming x values are indices (0, 1, 2,...)
     y_vals = nums
@@ -23,3 +23,13 @@ def get_linear_regression_result(nums: List[float]) -> LinearRegressionLine:
     variance = sum((y - (m * x + c)) ** 2 for x, y in zip(x_vals, y_vals)) / n
 
     return LinearRegressionLine(m, c, variance)
+
+
+def get_linear_regression_result(nums: List[float], gap: int = 1) -> LinearRegressionLine:
+    modified_nums = []
+    i = 0
+    while i < len(nums):
+        modified_nums.append(nums[i])
+        i += gap
+
+    return get_linear_regression_result_util(modified_nums)

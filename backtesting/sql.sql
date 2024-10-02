@@ -1,8 +1,8 @@
 -- To know the summary of recent testing
-select id from backtesting order by id limit 1;
+select success_rate from backtesting order by id desc limit 1;
 
 -- To know the daily backtesting summary of the recent backtesting
-select * from daily_backtesting where backtesting_id =  (select id from backtesting order by id limit 1)
+select * from daily_backtesting where backtesting_id =  (select id from backtesting order by id desc limit 1);
 
 -- To know the trades of recent backtesting
 select trade.date,

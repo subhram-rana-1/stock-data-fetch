@@ -8,9 +8,9 @@ from datetime import time, date
 def main():
     back_test_input = BacktestingInput(
         market=Market.NIFTY,
-        start_date=date(2024, 9, 24),
+        start_date=date(2024, 10, 1),
         start_time=time(9, 15, 0),
-        end_date=date(2024, 9, 24),
+        end_date=date(2024, 10, 1),
         end_time=time(15, 30, 0),
         chart_config=ChartConfig(  # todo
             smooth_price_averaging_method='simple',
@@ -20,8 +20,8 @@ def main():
             smooth_slope_period=10,
             smooth_slope_ema_period=10,
         ),
-        trade_config=TradeConfig(  # todo
-            trend_line_time_period_in_sec=150,
+        trade_config=TradeConfig(
+            trend_line_time_period_in_sec=120,
             min_entry_time=time(9, 20),
             entry_conditions=[
                 EntryCondition(
@@ -36,11 +36,10 @@ def main():
                     min_abs_price_slope=0.4,
                     min_abs_price_momentum=0.15,
                 ),
-                # todo: add more
             ],
             exit_condition=ExitCondition(
                 profit_target_type='fixed',
-                profit_target_points=10,
+                profit_target_points=5,
                 stoploss_type='fixed',
                 stoploss_points=5,
             )

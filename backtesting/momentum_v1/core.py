@@ -154,7 +154,7 @@ def get_backtest_result(back_test_input: BacktestingInput) -> BacktestingResult:
         success_rate=None,
     )
 
-    print(f'backtesting initiated: {back_testing.__str__()}')
+    # print(f'backtesting initiated: {back_testing.__str__()}')
 
     back_testing_result = BacktestingResult(
         back_testing=back_testing,
@@ -171,7 +171,7 @@ def get_backtest_result(back_test_input: BacktestingInput) -> BacktestingResult:
         start_time = global_start_time if day == global_start_date else market_entry_time
         end_time = global_end_time if day == global_end_date else market_exit_time
 
-        print(f'daily backtesting initiated for {day}, start time: {start_time}, end time: {end_time}')
+        # print(f'daily backtesting initiated for {day}, start time: {start_time}, end time: {end_time}')
 
         daily_backtest_result_for_up_and_down = get_daily_backtest_result_for_up_and_down(
             day,

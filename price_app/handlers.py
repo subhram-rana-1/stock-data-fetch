@@ -3,12 +3,13 @@ from datetime import datetime, date, time, timedelta
 from django.http import JsonResponse
 from typing import List
 from django.views.decorators.csrf import csrf_exempt
-from common.constants import date_format_string, time_format_string
+from common.constants import date_format_string, time_format_string, datetime_format_string
 from price_app.classes import PriceData, get_price_data_per_tick, calculate_other_auxiliary_prices
 from price_app.models import BankNiftyPrice, NiftyPrice
 from price_app.classes import price_data_to_dict
 from stock_data_fetch.enums import MarketType
 from . import configs
+from .cache import get_price_data_cache_key, get_price_data_from_cache, add_key_value_to_cache
 
 
 def fetch_nifty_price_data(
@@ -89,6 +90,36 @@ def fetch_banknifty_price_data(
     return price_data
 
 
+def get_cached_price_data(
+        market_type: MarketType,
+        start_timestamp: datetime,
+        to_timestamp: datetime,
+        smooth_price_averaging_method: str,
+        smooth_price_period: int,
+        smooth_price_ema_period: int,
+        smooth_slope_averaging_method: str,
+        smooth_slope_period: int,
+        smooth_slope_ema_period: int,
+        smooth_momentum_period: int,
+        smooth_momentum_ema_period: int,
+) -> (str, PriceData):
+    cache_key = get_price_data_cache_key(
+        market_type.name,
+        start_timestamp.strftime(datetime_format_string),
+        to_timestamp.strftime(datetime_format_string),
+        smooth_price_averaging_method,
+        smooth_price_period,
+        smooth_price_ema_period,
+        smooth_slope_averaging_method,
+        smooth_slope_period,
+        smooth_slope_ema_period,
+        smooth_momentum_period,
+        smooth_momentum_ema_period,
+    )
+
+    return cache_key, get_price_data_from_cache(cache_key)
+
+
 # IMPORTANT FUNCTION #
 # This is the function which can be used to run optimisation algorithm
 def fetch_price_data(
@@ -110,34 +141,56 @@ def fetch_price_data(
     start_timestamp = datetime.combine(from_date, from_time) + timedelta(microseconds=0)
     to_timestamp = datetime.combine(to_date, to_time) + timedelta(microseconds=0)
 
-    if market_type == MarketType.NIFTY:
-        return fetch_nifty_price_data(
-            start_timestamp,
-            to_timestamp,
-            smooth_price_averaging_method,
-            smooth_price_period,
-            smooth_price_ema_period,
-            smooth_slope_averaging_method,
-            smooth_slope_period,
-            smooth_slope_ema_period,
-            smooth_momentum_period,
-            smooth_momentum_ema_period,
-        )
-    if market_type == MarketType.BANKNIFTY:
-        return fetch_banknifty_price_data(
-            start_timestamp,
-            to_timestamp,
-            smooth_price_averaging_method,
-            smooth_price_period,
-            smooth_price_ema_period,
-            smooth_slope_averaging_method,
-            smooth_slope_period,
-            smooth_slope_ema_period,
-            smooth_momentum_period,
-            smooth_momentum_ema_period,
-        )
+    cache_key, cached_price_data = get_cached_price_data(
+        market_type,
+        start_timestamp,
+        to_timestamp,
+        smooth_price_averaging_method,
+        smooth_price_period,
+        smooth_price_ema_period,
+        smooth_slope_averaging_method,
+        smooth_slope_period,
+        smooth_slope_ema_period,
+        smooth_momentum_period,
+        smooth_momentum_ema_period,
+    )
+    if cached_price_data is not None:
+        return cached_price_data
 
-    raise Exception(f'invalid market type: {market_type}')
+    print('Price data not present in cache. Need to fetch from DB')
+
+    if market_type == MarketType.NIFTY:
+        price_data = fetch_nifty_price_data(
+            start_timestamp,
+            to_timestamp,
+            smooth_price_averaging_method,
+            smooth_price_period,
+            smooth_price_ema_period,
+            smooth_slope_averaging_method,
+            smooth_slope_period,
+            smooth_slope_ema_period,
+            smooth_momentum_period,
+            smooth_momentum_ema_period,
+        )
+    elif market_type == MarketType.BANKNIFTY:
+        price_data = fetch_banknifty_price_data(
+            start_timestamp,
+            to_timestamp,
+            smooth_price_averaging_method,
+            smooth_price_period,
+            smooth_price_ema_period,
+            smooth_slope_averaging_method,
+            smooth_slope_period,
+            smooth_slope_ema_period,
+            smooth_momentum_period,
+            smooth_momentum_ema_period,
+        )
+    else:
+        raise Exception(f'invalid market type: {market_type}')
+
+    # add_key_value_to_cache(cache_key, price_data)
+
+    return price_data
 
 
 @csrf_exempt

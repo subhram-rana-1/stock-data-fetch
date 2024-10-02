@@ -204,6 +204,16 @@ class BacktestingInput:
             'trade_config': self.trade_config.to_dict(),
         }
 
+    def to_dict(self) -> dict:
+        d = self.get_config_dict()
+        d['start_date'] = self.start_date
+        d['start_time'] = self.start_time
+        d['end_date'] = self.end_date
+        d['end_time'] = self.end_time
+        d['purpose'] = self.purpose
+
+        return d
+
 
 class DailyBacktestingResult:
     def __init__(

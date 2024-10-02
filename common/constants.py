@@ -12,5 +12,6 @@ banknifty_instrument_token = 260105  # taken from ZERODHA
 
 IST_timezone = pytz.timezone('Asia/Kolkata')
 
-time_format_string = "%H:%M:%S"
 date_format_string = "%Y-%m-%d"
+time_format_string = "%H:%M:%S"
+datetime_format_string = "%Y-%m-%d %H:%M:%S"
