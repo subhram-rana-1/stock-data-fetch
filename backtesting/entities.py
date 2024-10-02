@@ -30,12 +30,12 @@ class ConfigBase(ABC):
 class ChartConfig(ConfigBase):
     def __init__(
             self,
-            smooth_price_averaging_method: str,
-            smooth_price_period: int,
-            smooth_price_ema_period: int,
-            smooth_slope_averaging_method: str,
-            smooth_slope_period: int,
-            smooth_slope_ema_period: int,
+            smooth_price_averaging_method: str = None,
+            smooth_price_period: int = None,
+            smooth_price_ema_period: int = None,
+            smooth_slope_averaging_method: str = None,
+            smooth_slope_period: int = None,
+            smooth_slope_ema_period: int = None,
     ):
         self.smooth_price_averaging_method = smooth_price_averaging_method
         self.smooth_price_period = smooth_price_period
@@ -76,10 +76,10 @@ class ChartConfig(ConfigBase):
 class EntryCondition:
     def __init__(
             self,
-            max_variance: float,
-            min_abs_trend_slope: float,
-            min_abs_price_slope: float,
-            min_abs_price_momentum: float,
+            max_variance: float = None,
+            min_abs_trend_slope: float = None,
+            min_abs_price_slope: float = None,
+            min_abs_price_momentum: float = None,
     ):
         self.max_variance = max_variance
         self.min_abs_trend_slope = min_abs_trend_slope
@@ -107,10 +107,10 @@ class EntryCondition:
 class ExitCondition:
     def __init__(
             self,
-            profit_target_type: str,
-            profit_target_points: float,
-            stoploss_type: str,
-            stoploss_points: float,
+            profit_target_type: str = None,
+            profit_target_points: float = None,
+            stoploss_type: str = None,
+            stoploss_points: float = None,
     ):
         self.profit_target_type = profit_target_type
         self.profit_target_points = profit_target_points
@@ -138,10 +138,10 @@ class ExitCondition:
 class TradeConfig(ConfigBase):
     def __init__(
             self,
-            trend_line_time_period_in_sec: int,
-            min_entry_time: time,
-            entry_conditions: List[EntryCondition],
-            exit_condition: ExitCondition,
+            trend_line_time_period_in_sec: int = None,
+            min_entry_time: time = None,
+            entry_conditions: List[EntryCondition] = None,
+            exit_condition: ExitCondition = None,
     ):
         self.trend_line_time_period_in_sec = trend_line_time_period_in_sec
         self.min_entry_time = min_entry_time
@@ -179,13 +179,13 @@ class TradeConfig(ConfigBase):
 class BacktestingInput:
     def __init__(
             self,
-            market: Market,
-            start_date: date,
-            start_time: time,
-            end_date: date,
-            end_time: time,
-            chart_config: ChartConfig,
-            trade_config: TradeConfig,
+            market: Market = None,
+            start_date: date = None,
+            start_time: time = None,
+            end_date: date = None,
+            end_time: time = None,
+            chart_config: ChartConfig = None,
+            trade_config: TradeConfig = None,
             purpose: str = None,
     ):
         self.market = market

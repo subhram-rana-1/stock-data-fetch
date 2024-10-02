@@ -8,6 +8,8 @@ from datetime import date, time
 from backtesting.momentum_v1 import core
 from typing import List
 import time as tm
+import numpy as np
+import signal
 
 
 class OptimisationResult:
@@ -46,24 +48,34 @@ class OptimisationResult:
 
 
 # --------- constants -------------
-LOCK_ON_OPTIMISATION_RESULT = threading.Lock
+LOCK_ON_OPTIMISATION_RESULT = threading.Lock()
 OPTIMISATION_RESULT: OptimisationResult = None
-LOCK_ON_WAIT_GROUP = threading.Lock
+LOCK_ON_WAIT_GROUP = threading.Lock()
 WAIT_GROUP = 0
+cnt = 1
+STOP_THREADS = False
+THREADS = []
 # ---------------------------------
 
 
-def increase_wait_group(delta: int):
-    global WAIT_GROUP, LOCK_ON_OPTIMISATION_RESULT
+def terminate_signal_handler(sig, frame):
+    global STOP_THREADS
+    STOP_THREADS = True
 
-    with LOCK_ON_OPTIMISATION_RESULT:
+
+def increase_wait_group(delta: int):
+    print('IN crease_wait_group called')
+    global WAIT_GROUP
+
+    with LOCK_ON_WAIT_GROUP:
         WAIT_GROUP += delta
 
 
 def decrease_wait_group(delta: int):
-    global WAIT_GROUP, LOCK_ON_OPTIMISATION_RESULT
+    print('DE crease_wait_group called')
+    global WAIT_GROUP
 
-    with LOCK_ON_OPTIMISATION_RESULT:
+    with LOCK_ON_WAIT_GROUP:
         WAIT_GROUP -= delta
 
 
@@ -108,11 +120,11 @@ class OptimisationTaskInput:
         ),
         InputParam(
             'chart_config_smooth_price_period',
-            [],
+            list(range(5, 71, 5)),
         ),
         InputParam(
             'chart_config_smooth_price_ema_period',
-            [],
+            list(range(25, 351, 5)),
         ),
         InputParam(
             'chart_config_smooth_slope_averaging_method',
@@ -120,11 +132,11 @@ class OptimisationTaskInput:
         ),
         InputParam(
             'chart_config_smooth_slope_period',
-            [],
+            list(range(5, 31, 5)),
         ),
         InputParam(
             'chart_config_smooth_slope_ema_period',
-            [],
+            list(range(5, 31, 5)),
         ),
 
         # --------------------- line slope configs ----------------------
@@ -132,37 +144,37 @@ class OptimisationTaskInput:
         # related configs as it is
         InputParam(
             'entry_condition_max_variance',
-            [],
+            np.arange(0.5, 10.5, 0.5).tolist(),
         ),
         InputParam(
             'entry_condition_min_abs_trend_slope',
-            [],
+            np.arange(0, 0.5, 0.05).tolist(),
         ),
         InputParam(
             'entry_condition_min_abs_price_slope',
-            [],
+            np.arange(0.5, 5, 0.1).tolist(),
         ),
         InputParam(
             'entry_condition_min_abs_price_momentum',
-            [],
+            np.arange(0.1, 5, 0.2).tolist(),
         ),
         # ---------------------------------------------------------------
 
         InputParam(
             'trade_config_exit_condition_profit_target_type',
-            [],
+            ['fixed'],
         ),
         InputParam(
             'trade_config_exit_condition_profit_target_points',
-            [],
+            list(range(4, 21, 2)),
         ),
         InputParam(
             'trade_config_exit_condition_stoploss_type',
-            [],
+            ['fixed'],
         ),
         InputParam(
             'trade_config_exit_condition_stoploss_points',
-            [],
+            list(range(4, 15, 2)),
         ),
     ]
 
@@ -193,6 +205,7 @@ class OptimisationTaskInput:
 
 
 def optimise_result_with_exclusive_lock(optimisation_result: OptimisationResult):
+    print('optimise_result_with_exclusive_lock reached')
     global OPTIMISATION_RESULT
 
     with LOCK_ON_OPTIMISATION_RESULT:
@@ -240,6 +253,7 @@ def async_perform_backtesting_and_optimise_result(
         back_test_input: BacktestingInput,
         optimised_result: OptimisationResult,
 ):
+    print('async_perform_backtesting_and_optimise_result called')
     increase_wait_group(1)
 
     thread = threading.Thread(
@@ -247,6 +261,9 @@ def async_perform_backtesting_and_optimise_result(
         args=(optimisation_task_input, back_test_input, optimised_result),
     )
     thread.start()
+
+    global THREADS
+    THREADS.append(thread)
 
 
 def set_backtest_input_param(
@@ -305,7 +322,11 @@ def recursive_compute_back_test_result(
         optimised_result: OptimisationResult,
         trend_line_serial_number: int = None,
 ):
+    if STOP_THREADS:
+        return
+
     if i == len(optimisation_task_input.input_params):
+        print('if i == len(optimisation_task_input.input_params):')
         async_perform_backtesting_and_optimise_result(
             optimisation_task_input,
             copy.deepcopy(back_test_input),  # important
@@ -316,6 +337,7 @@ def recursive_compute_back_test_result(
 
     key = optimisation_task_input.input_params[i].key
     if not OptimisationTaskInput.is_key_an_entry_condition_key(key):
+        print(f'not an entry condition key: {key}')
         for val in optimisation_task_input.input_params[i].values:
             back_test_input = set_backtest_input_param(
                 optimisation_task_input,
@@ -331,6 +353,7 @@ def recursive_compute_back_test_result(
                 optimised_result,
             )
     else:
+        print(f'entry condition key: {key}, trend_line_serial_number: {trend_line_serial_number}')
         if OptimisationTaskInput.is_last_key_for_entry_condition(key):
             for val in optimisation_task_input.input_params[i].values:
                 back_test_input = set_backtest_input_param(
@@ -356,9 +379,12 @@ def recursive_compute_back_test_result(
                         back_test_input,
                         optimised_result,
                     )
-        elif OptimisationTaskInput.is_first_key_for_entry_condition(key):
-            if trend_line_serial_number is None:
-                trend_line_serial_number = 1
+        else:
+            if OptimisationTaskInput.is_first_key_for_entry_condition(key):
+                if trend_line_serial_number is None:
+                    trend_line_serial_number = 1
+
+            # print(f'reached to entry non last key: {trend_line_serial_number}')
 
             for val in optimisation_task_input.input_params[i].values:
                 back_test_input = set_backtest_input_param(
@@ -408,15 +434,19 @@ def compute_optimisation_result():
         optimised_result,
     )
 
-    while WAIT_GROUP != 0:
-        print('still processing ...')
-        tm.sleep(3)
+    for i in range(6):
+        print(WAIT_GROUP)
+        tm.sleep(1)
 
+    for thread in THREADS:
+        thread.join()
+
+    print('OPTIMISATION_RESULT: ', OPTIMISATION_RESULT)
     return
 
 
 def main():
     compute_optimisation_result()
 
-    print(OPTIMISATION_RESULT.get_summary())
+    # print(OPTIMISATION_RESULT.get_summary())
     # OPTIMISATION_RESULT.save_to_db()

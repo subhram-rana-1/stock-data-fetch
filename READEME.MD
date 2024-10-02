@@ -9,8 +9,8 @@
 
 # Backtesting
 ## Momentum v1
-* `chmod +x ./startup_scripts/backtesting/momentum_v1.sh && ./startup_scripts/backtesting/momentum_v1.sh`
-* `chmod +x ./startup_scripts/backtesting/momentum_v1_optimisation.sh && ./startup_scripts/backtesting/momentum_v1_optimisation.sh`
+* Run momentum v1 backtesting: `chmod +x ./startup_scripts/backtesting/momentum_v1.sh && ./startup_scripts/backtesting/momentum_v1.sh`
+* Run optimisation for momentum v1 strategy: `chmod +x ./startup_scripts/backtesting/momentum_v1_optimisation.sh && ./startup_scripts/backtesting/momentum_v1_optimisation.sh`
 
 # DB data storage location
 * `/Users/Subhram/my-projects/db-mysql`

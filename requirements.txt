@@ -5,3 +5,4 @@ mysqlclient
 django-cors-headers
 openpyxl
 django-mysql==4.14.0
+numpy
