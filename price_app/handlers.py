@@ -51,9 +51,10 @@ def fetch_nifty_price_data(
         smooth_momentum_period: int,
         smooth_momentum_ema_period: int,
 ) -> PriceData:
-    nifty_prices: List[NiftyPrice] = NiftyPrice.objects.filter(
-        timestamp__gte=start_timestamp,
-        timestamp__lte=to_timestamp,
+    nifty_prices: List[NiftyPrice] = fetch_price_from_database(
+        MarketType.NIFTY,
+        start_timestamp,
+        to_timestamp,
     )
 
     price_data: PriceData = PriceData(
@@ -90,11 +91,11 @@ def fetch_banknifty_price_data(
         smooth_momentum_period: int,
         smooth_momentum_ema_period: int,
 ) -> PriceData:
-    bank_nifty_prices: List[BankNiftyPrice] = BankNiftyPrice.objects.filter(
-        timestamp__gte=start_timestamp,
-        timestamp__lte=to_timestamp,
+    bank_nifty_prices: List[BankNiftyPrice] = fetch_price_from_database(
+        MarketType.BANKNIFTY,
+        start_timestamp,
+        to_timestamp,
     )
-
     price_data: PriceData = PriceData(
         market_name=MarketType.BANKNIFTY,
         price_list=[get_price_data_per_tick(price_details.timestamp, price_details.tick_price)
@@ -167,24 +168,6 @@ def fetch_price_data(
 ) -> PriceData:
     start_timestamp = datetime.combine(from_date, from_time) + timedelta(microseconds=0)
     to_timestamp = datetime.combine(to_date, to_time) + timedelta(microseconds=0)
-
-    cache_key, cached_price_data = get_cached_price_data(
-        market_type,
-        start_timestamp,
-        to_timestamp,
-        smooth_price_averaging_method,
-        smooth_price_period,
-        smooth_price_ema_period,
-        smooth_slope_averaging_method,
-        smooth_slope_period,
-        smooth_slope_ema_period,
-        smooth_momentum_period,
-        smooth_momentum_ema_period,
-    )
-    if cached_price_data is not None:
-        return cached_price_data
-
-    print('Price data not present in cache. Need to fetch from DB')
 
     if market_type == MarketType.NIFTY:
         price_data = fetch_nifty_price_data(

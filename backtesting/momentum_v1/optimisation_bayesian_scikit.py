@@ -4,6 +4,7 @@ from backtesting.entities import BacktestingInput, ChartConfig, \
 from backtesting.enums import Market
 from typing import List
 from skopt import gp_minimize
+import numpy as np
 from skopt.space import Categorical
 from backtesting.momentum_v1 import core
 from price_app.handlers import fetch_price_from_database
@@ -14,6 +15,9 @@ market_end_time = time(15, 30)
 
 
 def get_nums(start, end, interval) -> List:
+    if isinstance(start, float) or isinstance(end, float) or isinstance(interval, float):
+        return list(np.arange(start, end + interval, interval))
+
     return [x for x in range(start, end + 1, interval)]
 
 
@@ -23,10 +27,10 @@ class FixedInputs:
     the best result"""
 
     market = Market.NIFTY
-    start_date = date(2024, 10, 4)
-    start_time = time(10, 11, 0)
-    end_date = date(2024, 10, 4)
-    end_time = time(15, 30, 0)
+    start_date = date(2024, 9, 24)
+    start_time = time(9, 15, 0)
+    end_date = date(2024, 9, 24)
+    end_time = time(14, 45, 0)
     min_entry_time = time(9, 20)
 
     smooth_price_averaging_method = 'simple'
@@ -69,34 +73,37 @@ search_space = [
 
 
 def calculate_cost(backtest_result: BacktestingResult) -> float:
-    success_rate = backtest_result.back_testing.success_rate
-
     net_point_gain = 0
     for daily_back_testing_result in backtest_result.daily_back_testing_results:
         for trade in daily_back_testing_result.trades:
             net_point_gain += trade.gain
 
-    normalised_success_rate = success_rate * 100
-    normalised_net_point_gain = net_point_gain
+    return -1 * net_point_gain
 
-    weightage_success_rate = 0.6
-    weightage_net_point_gain = 0.4
-
-    positive_value = (normalised_success_rate * weightage_success_rate) + \
-                     (normalised_net_point_gain * weightage_net_point_gain)
-
-    cost = -1 * positive_value
-
-    return cost
+    # success_rate = backtest_result.back_testing.success_rate
+    # success_rate = success_rate if success_rate is not None else -100
+    # normalised_success_rate = success_rate * 100
+    # normalised_net_point_gain = net_point_gain
+    #
+    # weightage_success_rate = 0.6
+    # weightage_net_point_gain = 0.4
+    #
+    # positive_value = (normalised_success_rate * weightage_success_rate) + \
+    #                  (normalised_net_point_gain * weightage_net_point_gain)
+    #
+    # cost = -1 * positive_value
+    #
+    # return cost
 
 
 def cost_function(params) -> float:
+    # print(f'params: {params}')
+
     chat_config_smooth_price_period, \
         chat_config_smooth_price_ema_period, \
         chat_config_smooth_slope_period, \
         chat_config_smooth_slope_ema_period, \
         trade_config_trend_line_time_period_in_sec, \
-        trade_config_entry_condition_count, \
         trade_config_entry_condition_1_max_variance, \
         trade_config_entry_condition_1_min_abs_trend_slope, \
         trade_config_entry_condition_1_min_abs_price_slope, \

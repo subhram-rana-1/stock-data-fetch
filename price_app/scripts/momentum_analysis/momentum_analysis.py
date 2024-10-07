@@ -21,6 +21,7 @@ exit_reason_sl_hit = 'sl_hit'
 exit_reason_fix_target_achieved = 'fix_target_achieved'
 date_str_format = "%Y-%m-%d"
 time_str_format = "%H:%M:%S"
+datetime_str_format = "%Y-%m-%d %H:%M:%S"
 
 
 # CONFIGS ---------

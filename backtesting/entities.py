@@ -46,12 +46,12 @@ class ChartConfig(ConfigBase):
 
     def to_dict(self) -> dict:
         return {
-            'smooth_price_averaging_method': self.smooth_price_averaging_method,
-            'smooth_price_period': self.smooth_price_period,
-            'smooth_price_ema_period': self.smooth_price_ema_period,
-            'smooth_slope_averaging_method': self.smooth_slope_averaging_method,
-            'smooth_slope_period': self.smooth_slope_period,
-            'smooth_slope_ema_period': self.smooth_slope_ema_period,
+            'smooth_price_averaging_method': str(self.smooth_price_averaging_method),
+            'smooth_price_period': int(self.smooth_price_period),
+            'smooth_price_ema_period': int(self.smooth_price_ema_period),
+            'smooth_slope_averaging_method': str(self.smooth_slope_averaging_method),
+            'smooth_slope_period': int(self.smooth_slope_period),
+            'smooth_slope_ema_period': int(self.smooth_slope_ema_period),
         }
 
     @classmethod
@@ -119,10 +119,10 @@ class ExitCondition:
 
     def to_dict(self) -> dict:
         return {
-            'profit_target_type': self.profit_target_type,
-            'profit_target_points': self.profit_target_points,
-            'stoploss_type': self.stoploss_type,
-            'stoploss_points': self.stoploss_points,
+            'profit_target_type': str(self.profit_target_type),
+            'profit_target_points': int(self.profit_target_points),
+            'stoploss_type': str(self.stoploss_type),
+            'stoploss_points': int(self.stoploss_points),
         }
 
     @classmethod
@@ -150,8 +150,8 @@ class TradeConfig(ConfigBase):
 
     def to_dict(self):
         return {
-            'trend_line_time_period_in_sec': self.trend_line_time_period_in_sec,
-            'min_entry_time': self.min_entry_time.strftime(time_str_format),
+            'trend_line_time_period_in_sec': int(self.trend_line_time_period_in_sec),
+            'min_entry_time': str(self.min_entry_time.strftime(time_str_format)),
             'entry_conditions': [
                 entry_condition.to_dict()
                 for entry_condition in self.entry_conditions

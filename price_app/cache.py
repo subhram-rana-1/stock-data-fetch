@@ -2,12 +2,11 @@ import threading
 from datetime import datetime
 from price_app.classes import PriceData
 import hashlib
-
-from price_app.scripts.momentum_analysis.momentum_analysis import datetime_str_format
 from stock_data_fetch.enums import MarketType
 
 lock_price_info_cache = threading.Lock()
 price_info_cache: dict = {}
+datetime_str_format = "%Y-%m-%d %H:%M:%S"
 
 
 def get_price_data_cache_key(
