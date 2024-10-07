@@ -18,6 +18,14 @@ from trade
 where backtesting.id=(select id from backtesting order by id desc limit 1)
 order by trade.id;
 
+-- To know the total gain recent backtesting
+select sum(trade.gain)
+from trade
+    join daily_backtesting on trade.daily_backtesting_id=daily_backtesting.id
+    join backtesting on backtesting.id=daily_backtesting.backtesting_id
+where backtesting.id=(select id from backtesting order by id desc limit 1)
+order by trade.id;
+
 
 -- If migration deleted manually from DB, then use the following query
 insert into django_migrations
