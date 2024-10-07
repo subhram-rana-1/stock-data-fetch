@@ -1,8 +1,10 @@
 import threading
-
+from datetime import datetime
 from price_app.classes import PriceData
 import hashlib
 
+from price_app.scripts.momentum_analysis.momentum_analysis import datetime_str_format
+from stock_data_fetch.enums import MarketType
 
 lock_price_info_cache = threading.Lock()
 price_info_cache: dict = {}
@@ -51,3 +53,40 @@ def add_key_value_to_cache(key: str, val):
         if key not in price_info_cache.keys():
             print(f'adding to price cache, key: {key}')
             price_info_cache[key] = val
+
+
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+
+price_cache = {}
+
+
+def cache_key(
+        market: MarketType,
+        start_timestamp: datetime,
+        end_timestamp: datetime,
+) -> str:
+    market_str = market.name
+    start_timestamp_str = start_timestamp.strftime(datetime_str_format)
+    end_timestamp_str = end_timestamp.strftime(datetime_str_format)
+
+    concatenated_string = market_str + \
+                          start_timestamp_str + \
+                          end_timestamp_str
+
+    return hashlib.md5(concatenated_string.encode()).hexdigest()
+
+
+def get_from_cache(key: str):
+    if key not in price_cache:
+        print(f'price info NOT available in cache for key: {key}')
+        return None
+
+    print(f'price info  AVAILABLE in cache for key: {key}')
+    return price_cache[key]
+
+
+def add_to_cache(key: str, val):
+    print(f'adding price info to cache for key: {key}')
+    price_cache[key] = val

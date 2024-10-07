@@ -9,7 +9,34 @@ from price_app.models import BankNiftyPrice, NiftyPrice
 from price_app.classes import price_data_to_dict
 from stock_data_fetch.enums import MarketType
 from . import configs
-from .cache import get_price_data_cache_key, get_price_data_from_cache, add_key_value_to_cache
+from .cache import get_price_data_cache_key, get_price_data_from_cache, add_key_value_to_cache, cache_key, \
+    get_from_cache, add_to_cache
+
+
+def fetch_price_from_database(
+        market: MarketType,
+        start_timestamp: datetime,
+        end_timestamp: datetime,
+) -> List:
+    key = cache_key(market, start_timestamp, end_timestamp)
+    price_data = get_from_cache(key)
+    if price_data is not None:
+        return price_data
+
+    if market == MarketType.NIFTY:
+        price_data = NiftyPrice.objects.filter(
+            timestamp__gte=start_timestamp,
+            timestamp__lte=end_timestamp,
+        )
+    elif market == MarketType.BANKNIFTY:
+        price_data = BankNiftyPrice.objects.filter(
+            timestamp__gte=start_timestamp,
+            timestamp__lte=end_timestamp,
+        )
+
+    add_to_cache(key, price_data)
+
+    return price_data
 
 
 def fetch_nifty_price_data(
