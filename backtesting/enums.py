@@ -3,6 +3,7 @@ from stock_data_fetch.enums import DjangoEnum, MarketType
 
 class BacktestingStrategy(DjangoEnum):
     MOMENTUM_V1 = 'MOMENTUM_V1'
+    ONE_MINUTE_CANDLESTICK_MOMENTUM = 'ONE_MINUTE_CANDLESTICK_MOMENTUM'
 
 
 class BacktestingState(DjangoEnum):

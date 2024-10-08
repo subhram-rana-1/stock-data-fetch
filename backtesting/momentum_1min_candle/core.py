@@ -1,12 +1,13 @@
-from datetime import timedelta, date, time
+from datetime import date, time, timedelta
+from typing import List
 from backtesting.constants import market_entry_time, market_exit_time
 from backtesting.entities import BacktestingInput, BacktestingResult, DailyBacktestingResult, ChartConfig, TradeConfig
-from backtesting.enums import BacktestingState, BacktestingStrategy, Market, Direction
-from backtesting.models import Backtesting, Trade, DailyBacktesting
-from backtesting.momentum_v1.move_catcher import new_move_catcher
-from price_app.classes import PriceData, PriceDataPerTick
-from price_app.handlers import fetch_price_data
-from typing import List
+from backtesting.enums import BacktestingStrategy, Market, Direction
+from backtesting.models import Backtesting, DailyBacktesting, Trade
+from backtesting.momentum_1min_candle.move_catcher import new_move_catcher
+from backtesting.momentum_1min_candle.upstox import fetch_candlestick_data_from_upstox, UpstoxCandlestickResponse
+from price_app.classes import PriceData, PriceDataPerTick, calculate_other_auxiliary_prices
+from stock_data_fetch.enums import MarketType
 
 
 def make_entry(
@@ -90,6 +91,48 @@ def get_daily_backtest_result(
     return daily_backtesting_result
 
 
+def fetch_and_transform_candlestick_price_data(
+        market_type: MarketType,
+        from_date: date,
+        to_date: date,
+        from_time: time,
+        to_time: time,
+
+        smooth_price_averaging_method: str,
+        smooth_price_period: int,
+        smooth_price_ema_period: int,
+        smooth_slope_averaging_method: str,
+        smooth_slope_period: int,
+        smooth_slope_ema_period: int,
+        smooth_momentum_period: int = None,
+        smooth_momentum_ema_period: int = None,
+) -> PriceData:
+    candlestick_resp: UpstoxCandlestickResponse = fetch_candlestick_data_from_upstox(
+        market_type,
+        from_date,
+        to_date
+    )
+
+    price_data = PriceData(
+        market_name=market_type,
+        price_list=[candle.to_tick_by_tick_type_data() for candle in candlestick_resp.data.candles],
+    )
+
+    calculate_other_auxiliary_prices(
+        price_data,
+        smooth_price_averaging_method,
+        smooth_price_period,
+        smooth_price_ema_period,
+        smooth_slope_averaging_method,
+        smooth_slope_period,
+        smooth_slope_ema_period,
+        smooth_momentum_period,
+        smooth_momentum_ema_period,
+    )
+
+    return price_data
+
+
 def get_daily_backtest_result_for_up_and_down(
         day: date,
         start_time: time,
@@ -98,7 +141,7 @@ def get_daily_backtest_result_for_up_and_down(
 ) -> List[DailyBacktestingResult]:
     chart_config = ChartConfig.from_string(back_testing.chart_config)
 
-    price_data: PriceData = fetch_price_data(
+    price_data: PriceData = fetch_and_transform_candlestick_price_data(
         Market(back_testing.market).to_price_app_market_type(),
         day,
         day,
@@ -140,7 +183,7 @@ def get_daily_backtest_result_for_up_and_down(
 def get_backtest_result(back_test_input: BacktestingInput) -> BacktestingResult:
     back_testing: Backtesting = Backtesting(
         market=back_test_input.market.name,
-        strategy=BacktestingStrategy.MOMENTUM_V1.name,
+        strategy=BacktestingStrategy.ONE_MINUTE_CANDLESTICK_MOMENTUM.name,
         chart_config=back_test_input.chart_config.to_json(),
         trade_config=back_test_input.trade_config.to_json(),
         purpose=back_test_input.purpose,

@@ -43,18 +43,6 @@ class IMoveCatcher(ABC):
     def calculate_gain(self, trade: Trade) -> Trade:
         ...
 
-    # def _get_index_for_start_time(self, price_list: List[PriceDataPerTick], i: int, start_time: time) -> int:
-    #     lo = 0
-    #     hi = i
-    #     while lo != hi:
-    #         mid: int = lo+int((hi-lo)/2)
-    #         if price_list[mid]['tm'] >= start_time:
-    #             hi = mid
-    #         else:
-    #             lo = mid + 1
-    #
-    #     return lo
-
     def calculate_trend_line(self, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) -> Trendline:
         end_time: time = price_list[i]['tm']
 
@@ -71,6 +59,7 @@ class IMoveCatcher(ABC):
         return Trendline.from_linear_regression_line(get_linear_regression_result(tick_prices, 10))
 
 
+# TODO: check code in in detail and fix
 class UpMoveCatcher(IMoveCatcher):
     def should_make_entry(self, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) -> (bool, str):
         if price_list[i]['tm'] <= trade_config.min_entry_time:
@@ -125,6 +114,7 @@ class UpMoveCatcher(IMoveCatcher):
         return trade
 
 
+# TODO: check code in in detail and fix
 class DownMoveCatcher(IMoveCatcher):
     def should_make_entry(self, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) -> (bool, str):
         if price_list[i]['tm'] <= trade_config.min_entry_time:

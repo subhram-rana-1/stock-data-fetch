@@ -36,7 +36,9 @@ class FixedInputs:
     smooth_price_averaging_method = 'simple'
     smooth_slope_averaging_method = 'simple'
     profit_target_type = 'fixed'
+    profit_target_points = 20
     stoploss_type = 'fixed'
+    stoploss_points = 10
 
 
 search_space = [
@@ -67,8 +69,8 @@ search_space = [
     Categorical(get_nums(0.1, 30, 0.1), name='trade_config_entry_condition_4_min_abs_price_slope'),
     Categorical(get_nums(0.01, 10, 0.02), name='trade_config_entry_condition_4_min_abs_price_momentum'),
 
-    Categorical(get_nums(5, 10, 1), name='trade_config_exit_conditions_profit_target_points'),
-    Categorical(get_nums(5, 20, 1), name='trade_config_exit_conditions_stoploss_points'),
+    # Categorical(get_nums(5, 10, 1), name='trade_config_exit_conditions_profit_target_points'),
+    # Categorical(get_nums(5, 20, 1), name='trade_config_exit_conditions_stoploss_points'),
 ]
 
 
@@ -119,9 +121,9 @@ def cost_function(params) -> float:
         trade_config_entry_condition_4_max_variance, \
         trade_config_entry_condition_4_min_abs_trend_slope, \
         trade_config_entry_condition_4_min_abs_price_slope, \
-        trade_config_entry_condition_4_min_abs_price_momentum, \
-        trade_config_exit_conditions_profit_target_points, \
-        trade_config_exit_conditions_stoploss_points = params
+        trade_config_entry_condition_4_min_abs_price_momentum = params
+        # trade_config_exit_conditions_profit_target_points, \
+        # trade_config_exit_conditions_stoploss_points = params
 
     back_test_input = BacktestingInput(
         market=FixedInputs.market,
@@ -168,9 +170,9 @@ def cost_function(params) -> float:
             ],
             exit_condition=ExitCondition(
                 profit_target_type=FixedInputs.profit_target_type,
-                profit_target_points=trade_config_exit_conditions_profit_target_points,
+                profit_target_points=FixedInputs.profit_target_points,
                 stoploss_type=FixedInputs.stoploss_type,
-                stoploss_points=trade_config_exit_conditions_stoploss_points,
+                stoploss_points=FixedInputs.stoploss_points,
             )
         )
     )
