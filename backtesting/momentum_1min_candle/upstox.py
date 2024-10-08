@@ -4,7 +4,7 @@ from typing import List
 import requests
 import hashlib
 
-from price_app.classes import PriceDataPerTick
+from price_app.classes import PriceDataPerTick, PriceDataPerCandle
 from stock_data_fetch.enums import MarketType
 
 upstox_ts_format = "%Y-%m-%dT%H:%M:%S%z"
@@ -48,24 +48,28 @@ class Candle:
             self,
             ts: datetime,
             open: float,
-            hi: float,
+            high: float,
             lo: float,
             close: float,
     ):
         self.ts = ts
         self.open = open
-        self.hi = hi
+        self.high = high
         self.lo = lo
         self.close = close
 
     @property
     def avg_price(self) -> float:
-        return (self.open + self.hi + self.lo + self.close) / 4
+        return (self.open + self.high + self.lo + self.close) / 4
 
-    def to_tick_by_tick_type_data(self):
-        return PriceDataPerTick(
+    def to_tick_by_tick_type_data(self) -> PriceDataPerCandle:
+        return PriceDataPerCandle(
             dt=self.ts.date(),
             tm=self.ts.time(),
+            open=self.open,
+            high=self.high,
+            lo=self.lo,
+            close=self.close,
             tick_price=self.avg_price,
         )
 

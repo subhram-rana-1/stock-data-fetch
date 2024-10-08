@@ -5,7 +5,7 @@ from backtesting.entities import TradeConfig, LinearRegressionLine
 from backtesting.enums import Direction
 from backtesting.models import Trade
 from backtesting.utils import get_linear_regression_result
-from price_app.classes import PriceDataPerTick
+from price_app.classes import PriceDataPerCandle
 
 
 class Trendline(LinearRegressionLine):
@@ -26,12 +26,12 @@ class IMoveCatcher(ABC):
     exit_reason_target_hit = 'target_hit'
 
     @abstractmethod
-    def should_make_entry(self, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) \
+    def should_make_entry(self, price_list: List[PriceDataPerCandle], i: int, trade_config: TradeConfig) \
             -> (bool, str):
         ...
 
     @abstractmethod
-    def should_exit(self, trade: Trade, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) \
+    def should_exit(self, trade: Trade, price_list: List[PriceDataPerCandle], i: int, trade_config: TradeConfig) \
             -> (bool, str):
         ...
 
@@ -43,7 +43,7 @@ class IMoveCatcher(ABC):
     def calculate_gain(self, trade: Trade) -> Trade:
         ...
 
-    def calculate_trend_line(self, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) -> Trendline:
+    def calculate_trend_line(self, price_list: List[PriceDataPerCandle], i: int, trade_config: TradeConfig) -> Trendline:
         end_time: time = price_list[i]['tm']
 
         # today = datetime.today()
@@ -52,16 +52,15 @@ class IMoveCatcher(ABC):
         # start_time = start_time_as_datetime.time()
         # j = self._get_index_for_start_time(price_list, i, start_time)
 
-        datapoint_cnt = trade_config.trend_line_time_period_in_sec * 2
+        datapoint_cnt = trade_config.trend_line_time_period
         j = max(0, i - datapoint_cnt)
 
         tick_prices = [price['tick_price'] for price in price_list[j:i+1]]
-        return Trendline.from_linear_regression_line(get_linear_regression_result(tick_prices, 10))
+        return Trendline.from_linear_regression_line(get_linear_regression_result(tick_prices))
 
 
-# TODO: check code in in detail and fix
 class UpMoveCatcher(IMoveCatcher):
-    def should_make_entry(self, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) -> (bool, str):
+    def should_make_entry(self, price_list: List[PriceDataPerCandle], i: int, trade_config: TradeConfig) -> (bool, str):
         if price_list[i]['tm'] <= trade_config.min_entry_time:
             return False, f"entry not allowed before min entry time {trade_config.min_entry_time}"
 
@@ -81,11 +80,11 @@ class UpMoveCatcher(IMoveCatcher):
 
         return False, "No entry criteria met"
 
-    def should_exit(self, trade: Trade, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) \
+    def should_exit(self, trade: Trade, price_list: List[PriceDataPerCandle], i: int, trade_config: TradeConfig) \
             -> (bool, str):
         # 1. check stoploss trigger
         if trade_config.exit_condition.stoploss_type == 'fixed':
-            cur_tick_price = price_list[i]['tick_price']
+            cur_tick_price = price_list[i]['lo']
             lower_boundary_price = trade.entry_point - trade_config.exit_condition.stoploss_points
             if cur_tick_price <= lower_boundary_price:
                 return True, self.exit_reason_stoploss_hit
@@ -95,7 +94,7 @@ class UpMoveCatcher(IMoveCatcher):
 
         # 2. check target hit
         if trade_config.exit_condition.profit_target_type == 'fixed':
-            cur_tick_price = price_list[i]['tick_price']
+            cur_tick_price = price_list[i]['high']
             upper_boundary_price = trade.entry_point + trade_config.exit_condition.profit_target_points
             if cur_tick_price >= upper_boundary_price:
                 return True, self.exit_reason_target_hit
@@ -114,9 +113,8 @@ class UpMoveCatcher(IMoveCatcher):
         return trade
 
 
-# TODO: check code in in detail and fix
 class DownMoveCatcher(IMoveCatcher):
-    def should_make_entry(self, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) -> (bool, str):
+    def should_make_entry(self, price_list: List[PriceDataPerCandle], i: int, trade_config: TradeConfig) -> (bool, str):
         if price_list[i]['tm'] <= trade_config.min_entry_time:
             return False, f"entry not allowed before min entry time {trade_config.min_entry_time}"
 
@@ -135,11 +133,11 @@ class DownMoveCatcher(IMoveCatcher):
 
         return False, "No entry criteria met"
 
-    def should_exit(self, trade: Trade, price_list: List[PriceDataPerTick], i: int, trade_config: TradeConfig) \
+    def should_exit(self, trade: Trade, price_list: List[PriceDataPerCandle], i: int, trade_config: TradeConfig) \
             -> (bool, str):
         # 1. check stoploss trigger
         if trade_config.exit_condition.stoploss_type == 'fixed':
-            cur_tick_price = price_list[i]['tick_price']
+            cur_tick_price = price_list[i]['high']
             upper_boundary_price = trade.entry_point + trade_config.exit_condition.stoploss_points
             if cur_tick_price >= upper_boundary_price:
                 return True, self.exit_reason_stoploss_hit
@@ -149,7 +147,7 @@ class DownMoveCatcher(IMoveCatcher):
 
         # 2. check target hit
         if trade_config.exit_condition.profit_target_type == 'fixed':
-            cur_tick_price = price_list[i]['tick_price']
+            cur_tick_price = price_list[i]['lo']
             lower_boundary_price = trade.entry_point - trade_config.exit_condition.profit_target_points
             if cur_tick_price <= lower_boundary_price:
                 return True, self.exit_reason_target_hit

@@ -138,19 +138,19 @@ class ExitCondition:
 class TradeConfig(ConfigBase):
     def __init__(
             self,
-            trend_line_time_period_in_sec: int = None,
+            trend_line_time_period: int = None,
             min_entry_time: time = None,
             entry_conditions: List[EntryCondition] = None,
             exit_condition: ExitCondition = None,
     ):
-        self.trend_line_time_period_in_sec = trend_line_time_period_in_sec
+        self.trend_line_time_period = trend_line_time_period
         self.min_entry_time = min_entry_time
         self.entry_conditions = entry_conditions
         self.exit_condition = exit_condition
 
     def to_dict(self):
         return {
-            'trend_line_time_period_in_sec': int(self.trend_line_time_period_in_sec),
+            'trend_line_time_period': int(self.trend_line_time_period),
             'min_entry_time': str(self.min_entry_time.strftime(time_str_format)),
             'entry_conditions': [
                 entry_condition.to_dict()
@@ -162,7 +162,7 @@ class TradeConfig(ConfigBase):
     @classmethod
     def _from_dict(cls, my_dict: dict):
         return TradeConfig(
-            my_dict['trend_line_time_period_in_sec'],
+            my_dict['trend_line_time_period'],
             datetime.strptime(my_dict['min_entry_time'], "%H:%M:%S").time(),
             [EntryCondition.from_dict(entry_condition) for entry_condition in my_dict['entry_conditions']],
             ExitCondition.from_dict(my_dict['exit_condition']),

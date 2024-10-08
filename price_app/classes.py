@@ -21,6 +21,13 @@ class PriceDataPerTick(TypedDict):
     momentum_rate: float
 
 
+class PriceDataPerCandle(PriceDataPerTick):
+    open: float
+    high: float
+    lo: float
+    close: float
+
+
 class PriceData(TypedDict):
     market_name: MarketType
     price_list: List[PriceDataPerTick]

@@ -140,7 +140,7 @@ def cost_function(params) -> float:
             smooth_slope_ema_period=chat_config_smooth_slope_ema_period,
         ),
         trade_config=TradeConfig(
-            trend_line_time_period_in_sec=trade_config_trend_line_time_period_in_sec,
+            trend_line_time_period=trade_config_trend_line_time_period_in_sec,
             min_entry_time=FixedInputs.min_entry_time,
             entry_conditions=[
                 EntryCondition(

@@ -21,7 +21,7 @@ def main():
             smooth_slope_ema_period=10,
         ),
         trade_config=TradeConfig(
-            trend_line_time_period_in_sec=100,
+            trend_line_time_period=100,
             min_entry_time=time(9, 48),
             entry_conditions=[
                 EntryCondition(
