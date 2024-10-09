@@ -43,6 +43,10 @@ class IMoveCatcher(ABC):
     def calculate_gain(self, trade: Trade) -> Trade:
         ...
 
+    @abstractmethod
+    def get_exit_point(self, trade: Trade, trade_config: TradeConfig) -> float:
+        ...
+
     def calculate_trend_line(self, price_list: List[PriceDataPerCandle], i: int, trade_config: TradeConfig) -> Trendline:
         end_time: time = price_list[i]['tm']
 
@@ -105,12 +109,17 @@ class UpMoveCatcher(IMoveCatcher):
         return False, "no exit condition met"
 
     def is_winning_trade(self, trade: Trade, trade_config: TradeConfig) -> bool:
-        return trade.exit_point - trade.entry_point >= \
-            trade_config.exit_condition.profit_target_points
+        return trade.exit_point - trade.entry_point > 0
 
     def calculate_gain(self, trade: Trade) -> Trade:
         trade.gain = trade.exit_point - trade.entry_point
         return trade
+
+    def get_exit_point(self, trade: Trade, trade_config: TradeConfig) -> float:
+        if 'target_hit' in trade.exit_conditions:
+            return trade.entry_point + trade_config.exit_condition.profit_target_points
+        elif 'sl_hit' in trade.exit_conditions:
+            return trade.entry_point - trade_config.exit_condition.stoploss_points
 
 
 class DownMoveCatcher(IMoveCatcher):
@@ -158,12 +167,17 @@ class DownMoveCatcher(IMoveCatcher):
         return False, "no exit condition met"
 
     def is_winning_trade(self, trade: Trade, trade_config: TradeConfig) -> bool:
-        return trade.entry_point - trade.exit_point >= \
-            trade_config.exit_condition.profit_target_points
+        return trade.entry_point - trade.exit_point > 0
 
     def calculate_gain(self, trade: Trade) -> Trade:
         trade.gain = trade.entry_point - trade.exit_point
         return trade
+
+    def get_exit_point(self, trade: Trade, trade_config: TradeConfig) -> float:
+        if 'target_hit' in trade.exit_conditions:
+            return trade.entry_point - trade_config.exit_condition.profit_target_points
+        elif 'sl_hit' in trade.exit_conditions:
+            return trade.entry_point + trade_config.exit_condition.stoploss_points
 
 
 def new_move_catcher(direction: Direction) -> IMoveCatcher:

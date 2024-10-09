@@ -4,10 +4,12 @@ desc backtesting;
 select id, strategy, success_rate from backtesting order by id desc limit 5;
 
 -- To know the daily backtesting summary of the recent backtesting
-select * from daily_backtesting where backtesting_id =  (select id from backtesting order by id desc limit 1);
+select * from daily_backtesting
+where backtesting_id = (select id from backtesting order by id desc limit 1);
 
 -- To know the trades of recent backtesting
 select trade.date,
+       trade.daily_backtesting_id,
        trade.expected_direction,
        trade.entry_time,
        trade.exit_time,
@@ -34,4 +36,3 @@ insert into django_migrations
     (id, app, name, applied)
 values
     (35, 'price_app', '0001_initial', '2024-10-01 04:30:27.709948');
-

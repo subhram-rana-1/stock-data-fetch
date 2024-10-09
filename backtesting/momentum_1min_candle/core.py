@@ -4,15 +4,15 @@ from backtesting.constants import market_entry_time, market_exit_time
 from backtesting.entities import BacktestingInput, BacktestingResult, DailyBacktestingResult, ChartConfig, TradeConfig
 from backtesting.enums import BacktestingStrategy, Market, Direction
 from backtesting.models import Backtesting, DailyBacktesting, Trade
-from backtesting.momentum_1min_candle.move_catcher import new_move_catcher
+from backtesting.momentum_1min_candle.move_catcher import new_move_catcher, IMoveCatcher
 from backtesting.momentum_1min_candle.upstox import fetch_candlestick_data_from_upstox, UpstoxCandlestickResponse
-from price_app.classes import PriceData, PriceDataPerTick, calculate_other_auxiliary_prices
+from price_app.classes import PriceData, PriceDataPerTick, calculate_other_auxiliary_prices, PriceDataPerCandle
 from stock_data_fetch.enums import MarketType
 
 
 def make_entry(
         daily_backtesting: DailyBacktesting,
-        price_list: List[PriceDataPerTick], i: int,
+        price_list: List[PriceDataPerCandle], i: int,
         entry_conditions: str,
 ) -> Trade:
     return Trade(
@@ -20,7 +20,7 @@ def make_entry(
         date=daily_backtesting.date,
         expected_direction=daily_backtesting.expected_direction,
         entry_time=price_list[i]['tm'],
-        entry_point=price_list[i]['tick_price'],
+        entry_point=price_list[i]['open'],
         entry_conditions=entry_conditions,
         exit_time=None,
         exit_point=None,
@@ -33,10 +33,15 @@ def make_exit(
         trade: Trade,
         price_list: List[PriceDataPerTick], i: int,
         exit_conditions: str,
+        move_catcher: IMoveCatcher,
+        trade_config: TradeConfig,
 ) -> Trade:
     trade.exit_time = price_list[i]['tm']
-    trade.exit_point = price_list[i]['tick_price']
     trade.exit_conditions = exit_conditions
+    trade.exit_point = move_catcher.get_exit_point(
+        trade,
+        trade_config,
+    )
 
     return trade
 
@@ -52,7 +57,7 @@ def get_daily_backtest_result(
         trades=[],
     )
 
-    move_catcher = new_move_catcher(direction)
+    move_catcher: IMoveCatcher = new_move_catcher(direction)
 
     price_list = price_data['price_list']
     n = len(price_list)
@@ -69,7 +74,8 @@ def get_daily_backtest_result(
             while j < n:
                 should_exit, exit_conditions = move_catcher.should_exit(trade, price_list, j, trade_config)
                 if should_exit or j == n-1:
-                    trade = make_exit(trade, price_list, j, exit_conditions)
+                    trade = make_exit(trade, price_list, j, exit_conditions,
+                                      move_catcher, trade_config)
                     trade = move_catcher.calculate_gain(trade)
 
                     daily_backtesting_result.trades.append(trade)

@@ -30,10 +30,10 @@ class FixedInputsForTestDataset:
     the best result"""
 
     market = Market.NIFTY
-    start_date = date(2024, 9, 24)
+    start_date = date(2024, 9, 1)
     start_time = time(9, 15, 0)
     end_date = date(2024, 9, 24)
-    end_time = time(14, 45, 0)
+    end_time = time(15, 30, 0)
 
 
 class FixedInputs:
@@ -218,7 +218,7 @@ def preload_cache_for_stock_price():
 def main():
     preload_cache_for_stock_price()
 
-    res = gp_minimize(cost_function, search_space, n_calls=1)
+    res = gp_minimize(cost_function, search_space, n_calls=50)
 
     # ---------------- EXAMPLE RESULT -------------------
     # res_x = [np.int64(11), np.int64(20), np.int64(35), np.int64(45), np.int64(120), np.float64(6.5),
@@ -227,6 +227,9 @@ def main():
     #  np.float64(0.55), np.float64(1.9000000000000001), np.float64(0.12999999999999998), np.float64(8.5),
     #  np.float64(0.1), np.float64(3.1), np.float64(0.16999999999999998)]
     # ------------------------------------------------------
+
+    print("Best parameters:", res.x)
+    print("Best cost:", res.fun)
 
     optimised_params_dict = get_optimised_param_dict(
         market=FixedInputs.market,
@@ -237,7 +240,7 @@ def main():
         stoploss_type=FixedInputs.stoploss_type,
         profit_target_points=FixedInputs.profit_target_points,
         stoploss_points=FixedInputs.stoploss_points,
-        params=res.x.tolist(),
+        params=res.x,
     )
     write_to_json_file(optimised_params_dict)
 
