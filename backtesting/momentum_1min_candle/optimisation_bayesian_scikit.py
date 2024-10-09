@@ -24,18 +24,6 @@ def get_nums(start, end, interval) -> List:
     return [x for x in range(start, end + 1, interval)]
 
 
-class FixedInputsForTestDataset:
-    """ We can change this manually and run optimisation
-    and can observe which fixed input combination give
-    the best result"""
-
-    market = Market.NIFTY
-    start_date = date(2024, 9, 1)
-    start_time = time(9, 15, 0)
-    end_date = date(2024, 9, 24)
-    end_time = time(15, 30, 0)
-
-
 class FixedInputs:
     """ We can change this manually and run optimisation
     and can observe which fixed input combination give
@@ -243,6 +231,18 @@ def main():
         params=res.x,
     )
     write_to_json_file(optimised_params_dict)
+
+
+class FixedInputsForTestDataset:
+    """ We can change this manually and run optimisation
+    and can observe which fixed input combination give
+    the best result"""
+
+    market = Market.NIFTY
+    start_date = date(2024, 8, 1)
+    start_time = time(9, 15, 0)
+    end_date = date(2024, 9, 24)
+    end_time = time(15, 30, 0)
 
 
 def run_algo_on_test_data():

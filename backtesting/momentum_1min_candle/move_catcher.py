@@ -57,7 +57,9 @@ class IMoveCatcher(ABC):
         # j = self._get_index_for_start_time(price_list, i, start_time)
 
         datapoint_cnt = trade_config.trend_line_time_period
-        j = max(0, i - datapoint_cnt)
+        j = i - datapoint_cnt
+        if j < 0:
+            return None
 
         tick_prices = [price['tick_price'] for price in price_list[j:i+1]]
         return Trendline.from_linear_regression_line(get_linear_regression_result(tick_prices))
@@ -69,6 +71,9 @@ class UpMoveCatcher(IMoveCatcher):
             return False, f"entry not allowed before min entry time {trade_config.min_entry_time}"
 
         trendline = self.calculate_trend_line(price_list, i, trade_config)
+        if trendline is None:
+            return False, "It's too quick to know trendline"
+
         for entry_condition in trade_config.entry_conditions:
             if trendline.variance <= entry_condition.max_variance and \
                     trendline.m >= entry_condition.min_abs_trend_slope and \
@@ -128,6 +133,9 @@ class DownMoveCatcher(IMoveCatcher):
             return False, f"entry not allowed before min entry time {trade_config.min_entry_time}"
 
         trendline = self.calculate_trend_line(price_list, i, trade_config)
+        if trendline is None:
+            return False, "It's too quick to know trendline"
+
         for entry_condition in trade_config.entry_conditions:
             if trendline.variance <= entry_condition.max_variance and \
                     trendline.m <= -1*entry_condition.min_abs_trend_slope and \
