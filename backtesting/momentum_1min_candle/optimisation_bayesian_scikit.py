@@ -1,3 +1,4 @@
+import os.path
 from datetime import date, time, timedelta, datetime
 from backtesting.entities import BacktestingInput, ChartConfig, \
     TradeConfig, ExitCondition, EntryCondition, BacktestingResult
@@ -8,7 +9,7 @@ import numpy as np
 from skopt.space import Categorical
 
 from backtesting.momentum_1min_candle.utils import get_optimised_param_dict, write_to_json_file
-from backtesting.momentum_v1 import core
+from backtesting.momentum_1min_candle import core
 from price_app.handlers import fetch_price_from_database
 
 
@@ -21,6 +22,18 @@ def get_nums(start, end, interval) -> List:
         return list(np.arange(start, end + interval, interval))
 
     return [x for x in range(start, end + 1, interval)]
+
+
+class FixedInputsForTestDataset:
+    """ We can change this manually and run optimisation
+    and can observe which fixed input combination give
+    the best result"""
+
+    market = Market.NIFTY
+    start_date = date(2024, 9, 24)
+    start_time = time(9, 15, 0)
+    end_date = date(2024, 9, 24)
+    end_time = time(14, 45, 0)
 
 
 class FixedInputs:
@@ -207,6 +220,14 @@ def main():
 
     res = gp_minimize(cost_function, search_space, n_calls=1)
 
+    # ---------------- EXAMPLE RESULT -------------------
+    # res_x = [np.int64(11), np.int64(20), np.int64(35), np.int64(45), np.int64(120), np.float64(6.5),
+    #  np.float64(0.17500000000000002), np.float64(24.700000000000003), np.float64(5.369999999999999), np.float64(4.5),
+    #  np.float64(0.35000000000000003), np.float64(5.2), np.float64(2.6899999999999995), np.float64(0.5),
+    #  np.float64(0.55), np.float64(1.9000000000000001), np.float64(0.12999999999999998), np.float64(8.5),
+    #  np.float64(0.1), np.float64(3.1), np.float64(0.16999999999999998)]
+    # ------------------------------------------------------
+
     optimised_params_dict = get_optimised_param_dict(
         market=FixedInputs.market,
         smooth_price_averaging_method=FixedInputs.smooth_price_averaging_method,
@@ -214,6 +235,23 @@ def main():
         min_entry_time=FixedInputs.min_entry_time,
         profit_target_type=FixedInputs.profit_target_type,
         stoploss_type=FixedInputs.stoploss_type,
+        profit_target_points=FixedInputs.profit_target_points,
+        stoploss_points=FixedInputs.stoploss_points,
         params=res.x.tolist(),
     )
     write_to_json_file(optimised_params_dict)
+
+
+def run_algo_on_test_data():
+    back_test_input = BacktestingInput.from_json_file(
+        market=FixedInputsForTestDataset.market,
+        start_date=FixedInputsForTestDataset.start_date,
+        start_time=FixedInputsForTestDataset.start_time,
+        end_date=FixedInputsForTestDataset.end_date,
+        end_time=FixedInputsForTestDataset.end_time,
+        json_abs_file_path=os.path.abspath('backtesting/momentum_1min_candle/optimised_params.json'),
+    )
+
+    backtest_result: BacktestingResult = core.get_backtest_result(back_test_input)
+
+    backtest_result.save_to_db()

@@ -1,7 +1,7 @@
 desc backtesting;
 
 -- To know the summary of recent testing
-select id, strategy, success_rate from backtesting order by id desc limit 1;
+select id, strategy, success_rate from backtesting order by id desc limit 5;
 
 -- To know the daily backtesting summary of the recent backtesting
 select * from daily_backtesting where backtesting_id =  (select id from backtesting order by id desc limit 1);

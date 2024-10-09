@@ -14,7 +14,7 @@ class ConfigBase(ABC):
 
     @classmethod
     @abstractmethod
-    def _from_dict(cls, my_dict: dict):
+    def from_dict(cls, my_dict: dict):
         ...
 
     @abstractmethod
@@ -55,7 +55,7 @@ class ChartConfig(ConfigBase):
         }
 
     @classmethod
-    def _from_dict(cls, my_dict: dict):
+    def from_dict(cls, my_dict: dict):
         return ChartConfig(
             my_dict['smooth_price_averaging_method'],
             my_dict['smooth_price_period'],
@@ -70,7 +70,7 @@ class ChartConfig(ConfigBase):
 
     @staticmethod
     def from_string(meta: str):
-        return ChartConfig._from_dict(json.loads(meta))
+        return ChartConfig.from_dict(json.loads(meta))
 
 
 class EntryCondition:
@@ -160,7 +160,7 @@ class TradeConfig(ConfigBase):
         }
 
     @classmethod
-    def _from_dict(cls, my_dict: dict):
+    def from_dict(cls, my_dict: dict):
         return TradeConfig(
             my_dict['trend_line_time_period'],
             datetime.strptime(my_dict['min_entry_time'], "%H:%M:%S").time(),
@@ -173,7 +173,7 @@ class TradeConfig(ConfigBase):
 
     @staticmethod
     def from_string(trade_config_str: str):
-        return TradeConfig._from_dict(json.loads(trade_config_str))
+        return TradeConfig.from_dict(json.loads(trade_config_str))
 
 
 class BacktestingInput:
@@ -213,6 +213,30 @@ class BacktestingInput:
         d['purpose'] = self.purpose
 
         return d
+
+    @classmethod
+    def from_json_file(
+            cls,
+            market: Market,
+            start_date: date,
+            start_time: time,
+            end_date: date,
+            end_time: time,
+            json_abs_file_path: str
+    ):
+        with open(json_abs_file_path, "r") as json_file:
+            data = json.load(json_file)
+
+        return BacktestingInput(
+            market=market,
+            start_date=start_date,
+            start_time=start_time,
+            end_date=end_date,
+            end_time=end_time,
+            chart_config=ChartConfig.from_dict(data['chart_config']),
+            trade_config=TradeConfig.from_dict(data['trade_config']),
+            purpose=f'Running from JSON file: {datetime.now()}',
+        )
 
 
 class DailyBacktestingResult:

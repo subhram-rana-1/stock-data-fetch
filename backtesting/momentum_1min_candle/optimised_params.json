@@ -1,3 +1,47 @@
 {
-    "name": "dgsdfgsdgsdgs"
+    "market": "NIFTY",
+    "chart_config": {
+        "smooth_price_averaging_method": "simple",
+        "smooth_price_period": 11.0,
+        "smooth_price_ema_period": 20.0,
+        "smooth_slope_averaging_method": "simple",
+        "smooth_slope_period": 35.0,
+        "smooth_slope_ema_period": 45.0
+    },
+    "trade_config": {
+        "trend_line_time_period": 120.0,
+        "min_entry_time": "09:20:00",
+        "entry_conditions": [
+            {
+                "max_variance": 6.5,
+                "min_abs_trend_slope": 0.18,
+                "min_abs_price_slope": 24.7,
+                "min_abs_price_momentum": 5.37
+            },
+            {
+                "max_variance": 4.5,
+                "min_abs_trend_slope": 0.35,
+                "min_abs_price_slope": 5.2,
+                "min_abs_price_momentum": 2.69
+            },
+            {
+                "max_variance": 0.5,
+                "min_abs_trend_slope": 0.55,
+                "min_abs_price_slope": 1.9,
+                "min_abs_price_momentum": 0.13
+            },
+            {
+                "max_variance": 8.5,
+                "min_abs_trend_slope": 0.1,
+                "min_abs_price_slope": 3.1,
+                "min_abs_price_momentum": 0.17
+            }
+        ],
+        "exit_condition": {
+            "profit_target_type": "fixed",
+            "profit_target_points": 20,
+            "stoploss_type": "fixed",
+            "stoploss_points": 10
+        }
+    }
 }
