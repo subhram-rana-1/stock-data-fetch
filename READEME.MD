@@ -11,10 +11,11 @@
 ## Momentum v1
 * Run momentum v1 backtesting: `chmod +x ./startup_scripts/backtesting/momentum_v1.sh && ./startup_scripts/backtesting/momentum_v1.sh`
 * Run optimisation for momentum_v1 by "grip search": `chmod +x ./startup_scripts/backtesting/optimisation_grid_search.sh && ./startup_scripts/backtesting/optimisation_grid_search.sh`
-* Run optimisation for momentum_v1 by "bayesian scikit": `chmod +x ./startup_scripts/backtesting/optimisation_bayesian_scikit.sh && ./startup_scripts/backtesting/optimisation_bayesian_scikit.sh`
+* Run optimisation for momentum_v1 by "bayesian scikit": `chmod +x ./startup_scripts/backtesting/momentum_v1_optimisation_bayesian_scikit.sh && ./startup_scripts/backtesting/momentum_v1_optimisation_bayesian_scikit.sh`
 
 ## Momentum 1 min candlesticks
 * Run momentum 1 min candlesticks backtesting: `chmod +x ./startup_scripts/backtesting/momentum_1min_candle.sh && ./startup_scripts/backtesting/momentum_1min_candle.sh`
+* Run optimisation for momentum_v1 by "bayesian scikit": `chmod +x ./startup_scripts/backtesting/momentum_1min_candlestick_optimisation_bayesian_scikit.sh && ./startup_scripts/backtesting/momentum_1min_candlestick_optimisation_bayesian_scikit.sh`
 
 # DB data storage location
 * `/Users/Subhram/my-projects/db-mysql`
