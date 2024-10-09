@@ -64,7 +64,7 @@ class IMoveCatcher(ABC):
         # start_time = start_time_as_datetime.time()
         # j = self._get_index_for_start_time(price_list, i, start_time)
 
-        datapoint_cnt = trade_config.trend_line_time_period_in_sec * 2
+        datapoint_cnt = trade_config.trend_line_time_period * 2
         j = max(0, i - datapoint_cnt)
 
         tick_prices = [price['tick_price'] for price in price_list[j:i+1]]

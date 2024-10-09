@@ -1,7 +1,7 @@
 from backtesting.entities import TradeConfig, EntryCondition, BacktestingInput, ChartConfig, ExitCondition, \
     BacktestingResult
 from backtesting.enums import Market
-from backtesting.momentum_v1 import core
+from backtesting.momentum_1min_candle import core
 from datetime import time, date
 
 
