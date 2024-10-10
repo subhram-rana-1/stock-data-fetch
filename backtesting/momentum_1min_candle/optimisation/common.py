@@ -56,36 +56,74 @@ class FixedInputsForTestDataset:
     end_time = time(15, 30, 0)
 
 
+search_range_chat_config_smooth_price_periods = get_nums(5, 30, 3)
+search_range_chat_config_smooth_price_ema_periods = get_nums(20, 200, 15)
+search_range_chat_config_smooth_slope_periods = get_nums(5, 50, 5)
+search_range_chat_config_smooth_slope_ema_periods = get_nums(5, 50, 5)
+search_range_trade_config_trend_line_time_periods_in_sec = get_nums(60, 360, 20)
+search_range_trade_config_entry_condition_1_max_variance = get_nums(0.5, 10, 0.5)
+search_range_trade_config_entry_condition_1_min_abs_trend_slope = get_nums(0, 0.6, 0.025)
+search_range_trade_config_entry_condition_1_min_abs_price_slope = get_nums(0.1, 30, 0.1)
+search_range_trade_config_entry_condition_1_min_abs_price_momentum = get_nums(0.01, 10, 0.02)
+search_range_trade_config_entry_condition_2_max_variance = get_nums(0.5, 10, 0.5)
+search_range_trade_config_entry_condition_2_min_abs_trend_slope = get_nums(0, 0.6, 0.025)
+search_range_trade_config_entry_condition_2_min_abs_price_slope = get_nums(0.1, 30, 0.1)
+search_range_trade_config_entry_condition_2_min_abs_price_momentum = get_nums(0.01, 10, 0.02)
+search_range_trade_config_entry_condition_3_max_variance = get_nums(0.5, 10, 0.5)
+search_range_trade_config_entry_condition_3_min_abs_trend_slope = get_nums(0, 0.6, 0.025)
+search_range_trade_config_entry_condition_3_min_abs_price_slope = get_nums(0.1, 30, 0.1)
+search_range_trade_config_entry_condition_3_min_abs_price_momentum = get_nums(0.01, 10, 0.02)
+search_range_trade_config_entry_condition_4_max_variance = get_nums(0.5, 10, 0.5)
+search_range_trade_config_entry_condition_4_min_abs_trend_slope = get_nums(0, 0.6, 0.025)
+search_range_trade_config_entry_condition_4_min_abs_price_slope = get_nums(0.1, 30, 0.1)
+search_range_trade_config_entry_condition_4_min_abs_price_momentum = get_nums(0.01, 10, 0.02)
+
+search_bounds = [
+    [search_range_chat_config_smooth_price_periods[0], search_range_chat_config_smooth_price_periods[1]],
+    [search_range_chat_config_smooth_price_ema_periods[0], search_range_chat_config_smooth_price_ema_periods[1]],
+    [search_range_chat_config_smooth_slope_periods[0], search_range_chat_config_smooth_slope_periods[1]],
+    [search_range_chat_config_smooth_slope_ema_periods[0], search_range_chat_config_smooth_slope_ema_periods[1]],
+    [search_range_trade_config_trend_line_time_periods_in_sec[0], search_range_trade_config_trend_line_time_periods_in_sec[1]],
+    [search_range_trade_config_entry_condition_1_max_variance[0], search_range_trade_config_entry_condition_1_max_variance[1]],
+    [search_range_trade_config_entry_condition_1_min_abs_trend_slope[0], search_range_trade_config_entry_condition_1_min_abs_trend_slope[1]],
+    [search_range_trade_config_entry_condition_1_min_abs_price_slope[0], search_range_trade_config_entry_condition_1_min_abs_price_slope[1]],
+    [search_range_trade_config_entry_condition_1_min_abs_price_momentum[0], search_range_trade_config_entry_condition_1_min_abs_price_momentum[1]],
+    [search_range_trade_config_entry_condition_2_max_variance[0], search_range_trade_config_entry_condition_2_max_variance[1]],
+    [search_range_trade_config_entry_condition_2_min_abs_trend_slope[0], search_range_trade_config_entry_condition_2_min_abs_trend_slope[1]],
+    [search_range_trade_config_entry_condition_2_min_abs_price_slope[0], search_range_trade_config_entry_condition_2_min_abs_price_slope[1]],
+    [search_range_trade_config_entry_condition_2_min_abs_price_momentum[0], search_range_trade_config_entry_condition_2_min_abs_price_momentum[1]],
+    [search_range_trade_config_entry_condition_3_max_variance[0], search_range_trade_config_entry_condition_3_max_variance[1]],
+    [search_range_trade_config_entry_condition_3_min_abs_trend_slope[0], search_range_trade_config_entry_condition_3_min_abs_trend_slope[1]],
+    [search_range_trade_config_entry_condition_3_min_abs_price_slope[0], search_range_trade_config_entry_condition_3_min_abs_price_slope[1]],
+    [search_range_trade_config_entry_condition_3_min_abs_price_momentum[0], search_range_trade_config_entry_condition_3_min_abs_price_momentum[1]],
+    [search_range_trade_config_entry_condition_4_max_variance[0], search_range_trade_config_entry_condition_4_max_variance[1]],
+    [search_range_trade_config_entry_condition_4_min_abs_trend_slope[0], search_range_trade_config_entry_condition_4_min_abs_trend_slope[1]],
+    [search_range_trade_config_entry_condition_4_min_abs_price_slope[0], search_range_trade_config_entry_condition_4_min_abs_price_slope[1]],
+    [search_range_trade_config_entry_condition_4_min_abs_price_momentum[0], search_range_trade_config_entry_condition_4_min_abs_price_momentum[1]],
+]
+
 search_space = [
-    Categorical(get_nums(5, 30, 3), name='chat_config_smooth_price_periods'),
-    Categorical(get_nums(20, 200, 15), name='chat_config_smooth_price_ema_periods'),
-    Categorical(get_nums(5, 50, 5), name='chat_config_smooth_slope_periods'),
-    Categorical(get_nums(5, 50, 5), name='chat_config_smooth_slope_ema_periods'),
-
-    Categorical(get_nums(60, 360, 20), name='trade_config_trend_line_time_periods_in_sec'),
-
-    Categorical(get_nums(0.5, 10, 0.5), name='trade_config_entry_condition_1_max_variance'),
-    Categorical(get_nums(0, 0.6, 0.025), name='trade_config_entry_condition_1_min_abs_trend_slope'),
-    Categorical(get_nums(0.1, 30, 0.1), name='trade_config_entry_condition_1_min_abs_price_slope'),
-    Categorical(get_nums(0.01, 10, 0.02), name='trade_config_entry_condition_1_min_abs_price_momentum'),
-
-    Categorical(get_nums(0.5, 10, 0.5), name='trade_config_entry_condition_2_max_variance'),
-    Categorical(get_nums(0, 0.6, 0.025), name='trade_config_entry_condition_2_min_abs_trend_slope'),
-    Categorical(get_nums(0.1, 30, 0.1), name='trade_config_entry_condition_2_min_abs_price_slope'),
-    Categorical(get_nums(0.01, 10, 0.02), name='trade_config_entry_condition_2_min_abs_price_momentum'),
-
-    Categorical(get_nums(0.5, 10, 0.5), name='trade_config_entry_condition_3_max_variance'),
-    Categorical(get_nums(0, 0.6, 0.025), name='trade_config_entry_condition_3_min_abs_trend_slope'),
-    Categorical(get_nums(0.1, 30, 0.1), name='trade_config_entry_condition_3_min_abs_price_slope'),
-    Categorical(get_nums(0.01, 10, 0.02), name='trade_config_entry_condition_3_min_abs_price_momentum'),
-
-    Categorical(get_nums(0.5, 10, 0.5), name='trade_config_entry_condition_4_max_variance'),
-    Categorical(get_nums(0, 0.6, 0.025), name='trade_config_entry_condition_4_min_abs_trend_slope'),
-    Categorical(get_nums(0.1, 30, 0.1), name='trade_config_entry_condition_4_min_abs_price_slope'),
-    Categorical(get_nums(0.01, 10, 0.02), name='trade_config_entry_condition_4_min_abs_price_momentum'),
-
-    # Categorical(get_nums(5, 10, 1), name='trade_config_exit_conditions_profit_target_points'),
-    # Categorical(get_nums(5, 20, 1), name='trade_config_exit_conditions_stoploss_points'),
+    Categorical(search_range_chat_config_smooth_price_periods, name='chat_config_smooth_price_periods'),
+    Categorical(search_range_chat_config_smooth_price_ema_periods, name='chat_config_smooth_price_ema_periods'),
+    Categorical(search_range_chat_config_smooth_slope_periods, name='chat_config_smooth_slope_periods'),
+    Categorical(search_range_chat_config_smooth_slope_ema_periods, name='chat_config_smooth_slope_ema_periods'),
+    Categorical(search_range_trade_config_trend_line_time_periods_in_sec, name='trade_config_trend_line_time_periods_in_sec'),
+    Categorical(search_range_trade_config_entry_condition_1_max_variance, name='trade_config_entry_condition_1_max_variance'),
+    Categorical(search_range_trade_config_entry_condition_1_min_abs_trend_slope, name='trade_config_entry_condition_1_min_abs_trend_slope'),
+    Categorical(search_range_trade_config_entry_condition_1_min_abs_price_slope, name='trade_config_entry_condition_1_min_abs_price_slope'),
+    Categorical(search_range_trade_config_entry_condition_1_min_abs_price_momentum, name='trade_config_entry_condition_1_min_abs_price_momentum'),
+    Categorical(search_range_trade_config_entry_condition_2_max_variance, name='trade_config_entry_condition_2_max_variance'),
+    Categorical(search_range_trade_config_entry_condition_2_min_abs_trend_slope, name='trade_config_entry_condition_2_min_abs_trend_slope'),
+    Categorical(search_range_trade_config_entry_condition_2_min_abs_price_slope, name='trade_config_entry_condition_2_min_abs_price_slope'),
+    Categorical(search_range_trade_config_entry_condition_2_min_abs_price_momentum, name='trade_config_entry_condition_2_min_abs_price_momentum'),
+    Categorical(search_range_trade_config_entry_condition_3_max_variance, name='trade_config_entry_condition_3_max_variance'),
+    Categorical(search_range_trade_config_entry_condition_3_min_abs_trend_slope, name='trade_config_entry_condition_3_min_abs_trend_slope'),
+    Categorical(search_range_trade_config_entry_condition_3_min_abs_price_slope, name='trade_config_entry_condition_3_min_abs_price_slope'),
+    Categorical(search_range_trade_config_entry_condition_3_min_abs_price_momentum, name='trade_config_entry_condition_3_min_abs_price_momentum'),
+    Categorical(search_range_trade_config_entry_condition_4_max_variance, name='trade_config_entry_condition_4_max_variance'),
+    Categorical(search_range_trade_config_entry_condition_4_min_abs_trend_slope, name='trade_config_entry_condition_4_min_abs_trend_slope'),
+    Categorical(search_range_trade_config_entry_condition_4_min_abs_price_slope, name='trade_config_entry_condition_4_min_abs_price_slope'),
+    Categorical(search_range_trade_config_entry_condition_4_min_abs_price_momentum, name='trade_config_entry_condition_4_min_abs_price_momentum'),
 ]
 
 
@@ -122,8 +160,6 @@ def calculate_cost(
 
 
 def cost_function(params) -> float:
-    # print(f'params: {params}')
-
     chat_config_smooth_price_period, \
         chat_config_smooth_price_ema_period, \
         chat_config_smooth_slope_period, \
@@ -221,3 +257,18 @@ def preload_cache_for_stock_price():
         )
 
         day += timedelta(days=1)
+
+
+def run_algo_on_test_data():
+    back_test_input = BacktestingInput.from_json_file(
+        market=FixedInputsForTestDataset.market,
+        start_date=FixedInputsForTestDataset.start_date,
+        start_time=FixedInputsForTestDataset.start_time,
+        end_date=FixedInputsForTestDataset.end_date,
+        end_time=FixedInputsForTestDataset.end_time,
+        json_abs_file_path=os.path.abspath(optimised_params_json_file_path),
+    )
+
+    backtest_result: BacktestingResult = core.get_backtest_result(back_test_input)
+
+    backtest_result.save_to_db()

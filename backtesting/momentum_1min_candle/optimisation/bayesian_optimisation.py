@@ -38,18 +38,3 @@ def main():
     )
 
     write_to_json_file(optimised_params_dict, f'./{optimised_params_json_file_path}')
-
-
-def run_algo_on_test_data():
-    back_test_input = BacktestingInput.from_json_file(
-        market=FixedInputsForTestDataset.market,
-        start_date=FixedInputsForTestDataset.start_date,
-        start_time=FixedInputsForTestDataset.start_time,
-        end_date=FixedInputsForTestDataset.end_date,
-        end_time=FixedInputsForTestDataset.end_time,
-        json_abs_file_path=os.path.abspath(optimised_params_json_file_path),
-    )
-
-    backtest_result: BacktestingResult = core.get_backtest_result(back_test_input)
-
-    backtest_result.save_to_db()
