@@ -17,6 +17,7 @@
 * Run momentum 1 min candlesticks backtesting: `chmod +x ./startup_scripts/backtesting/momentum_1min_candle.sh && ./startup_scripts/backtesting/momentum_1min_candle.sh`
 * Run optimisation for momentum_1min_candle by "bayesian scikit": `chmod +x ./startup_scripts/backtesting/momentum_1min_candlestick_optimisation_bayesian_scikit.sh && ./startup_scripts/backtesting/momentum_1min_candlestick_optimisation_bayesian_scikit.sh`
 * Run algo on test data for momentum_1min_candle: `chmod +x ./startup_scripts/backtesting/momentum_1min_candle_test_data.sh && ./startup_scripts/backtesting/momentum_1min_candle_test_data.sh`
+* generate ANN data for momentum_1min_candle: `chmod +x ./startup_scripts/backtesting/momentum_1min_candle_ann_data_gen.sh && ./startup_scripts/backtesting/momentum_1min_candle_ann_data_gen.sh`
 
 # DB data storage location
 * `/Users/Subhram/my-projects/db-mysql`

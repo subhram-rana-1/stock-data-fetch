@@ -30,10 +30,10 @@ class FixedInputs:
     the best result"""
 
     market = Market.NIFTY
-    start_date = date(2024, 9, 24)
+    start_date = date(2024, 8, 1)
     start_time = time(9, 15, 0)
-    end_date = date(2024, 9, 24)
-    end_time = time(14, 45, 0)
+    end_date = date(2024, 8, 30)
+    end_time = time(15, 30, 0)
     min_entry_time = time(9, 20)
 
     smooth_price_averaging_method = 'simple'
@@ -41,7 +41,7 @@ class FixedInputs:
     profit_target_type = 'fixed'
     profit_target_points = 20
     stoploss_type = 'fixed'
-    stoploss_points = 10
+    stoploss_points = 13
 
 
 search_space = [
@@ -77,7 +77,30 @@ search_space = [
 ]
 
 
-def calculate_cost(backtest_result: BacktestingResult) -> float:
+def calculate_cost(
+        back_test_input: BacktestingInput,
+        backtest_result: BacktestingResult,
+) -> float:
+    max_cost = 10000000
+
+    i = 0
+    entry_condition_cnt = len(back_test_input.trade_config.entry_conditions)
+    while i < entry_condition_cnt - 1:
+        entry_condition = back_test_input.trade_config.entry_conditions[i]
+        next_entry_condition = back_test_input.trade_config.entry_conditions[i+1]
+
+        if entry_condition.max_variance >= next_entry_condition.max_variance:
+            return max_cost
+
+        if entry_condition.min_abs_trend_slope <= next_entry_condition.min_abs_trend_slope:
+            return max_cost
+
+        if entry_condition.min_abs_price_slope >= next_entry_condition.min_abs_price_slope:
+            return max_cost
+
+        if entry_condition.min_abs_price_momentum >= next_entry_condition.min_abs_price_momentum:
+            return max_cost
+
     net_point_gain = 0
     for daily_back_testing_result in backtest_result.daily_back_testing_results:
         for trade in daily_back_testing_result.trades:
@@ -182,7 +205,7 @@ def cost_function(params) -> float:
 
     backtest_result: BacktestingResult = core.get_backtest_result(back_test_input)
 
-    return calculate_cost(backtest_result)
+    return calculate_cost(back_test_input, backtest_result)
 
 
 def preload_cache_for_stock_price():
@@ -239,7 +262,7 @@ class FixedInputsForTestDataset:
     the best result"""
 
     market = Market.NIFTY
-    start_date = date(2024, 8, 1)
+    start_date = date(2024, 9, 1)
     start_time = time(9, 15, 0)
     end_date = date(2024, 9, 24)
     end_time = time(15, 30, 0)

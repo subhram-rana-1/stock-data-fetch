@@ -33,6 +33,10 @@ class PriceData(TypedDict):
     price_list: List[PriceDataPerTick]
 
 
+def cut_first_n_tick_data_from_price_data(price_data: PriceData, n: int):
+    price_data['price_list'] = price_data['price_list'][n:]
+
+
 def price_data_to_dict(price_data: PriceData) -> dict:
     return {
         'market_name': price_data['market_name'].value,
@@ -80,8 +84,8 @@ def calculate_other_auxiliary_prices(
         smooth_slope_averaging_method: str,
         smooth_slope_period: int,
         smooth_slope_ema_period: int,
-        smooth_momentum_period: int,
-        smooth_momentum_ema_period: int,
+        smooth_momentum_period: int = None,
+        smooth_momentum_ema_period: int = None,
 ):
     if len(price_data['price_list']) == 0:
         return
