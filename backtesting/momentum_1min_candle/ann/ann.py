@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from keras.src.models import Sequential
 from keras.src.layers import Dense
+from typing import List
 
 from backtesting.momentum_1min_candle.ann.data_gen import Input
 
@@ -19,6 +20,42 @@ def get_input_output_dataset(relative_file_path: str) -> (DataFrame, DataFrame):
     return input, output
 
 
+def compare_test_dataset_result_with_real_output(
+        ANN,
+        normalised_input_test,
+        real_output_test,
+) -> List[List[int]]:
+    confusion_matrix: List[List[int]] = [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ]
+
+    predicted_output_test = ANN.predict(normalised_input_test)
+
+    i = 0
+    while i < len(predicted_output_test):
+        predicted = predicted_output_test[i]
+        real = real_output_test.iloc[i].values
+
+        real_idx, predicted_idx = None, None
+
+        if real[0] == 1: real_idx = 0
+        elif real[1] == 1: real_idx = 1
+        elif real[2] == 1: real_idx = 2
+
+        if predicted[0] >= 0.9: predicted_idx = 0
+        elif predicted[1] >= 0.9: predicted_idx = 1
+        elif predicted[2] >= 0.9: predicted_idx = 2
+
+        if predicted_idx is not None:
+            confusion_matrix[real_idx][predicted_idx] += 1
+
+        i += 1
+
+    return confusion_matrix
+
+
 def main():
     input, output = get_input_output_dataset(Input.dataset_file_path)
 
@@ -28,6 +65,7 @@ def main():
     input_scaler = StandardScaler().fit(input)
 
     normalised_input_train = input_scaler.transform(input_train)
+    normalised_input_test = input_scaler.transform(input_test)
 
     ANN = Sequential()
 
@@ -54,8 +92,19 @@ def main():
     print(f'mean_absolute_error: {mean_absolute_error}')
     # --------------------------------
 
-    # -------------- example predictions --------------- #
-    normalised_input_test = input_scaler.transform(input_test)
-    print(f'predicted value: \n{ANN.predict(normalised_input_test[:20])}')
-    print(f'real outputs: \n{output_test[:20]}')
-    # ------------------------------------------------ #
+    confusion_matrix = compare_test_dataset_result_with_real_output(
+        ANN,
+        normalised_input_test,
+        output_test,
+    )
+
+    print(f'confusion_matrix: \n {confusion_matrix}')
+
+
+# --------- confusion matrix for the last run
+#                predicted
+#
+#              59, 126,  46
+#   real ->    58, 1434, 41
+#              41, 103,  53
+# ------------------------------------------

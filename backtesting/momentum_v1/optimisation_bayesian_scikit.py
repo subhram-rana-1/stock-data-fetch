@@ -203,6 +203,6 @@ def preload_cache_for_stock_price():
 def main():
     preload_cache_for_stock_price()
 
-    res = gp_minimize(cost_function, search_space, n_calls=50)
+    res = gp_minimize(cost_function, search_space, n_calls=20)
     print("Best parameters:", res.x)
     print("Best cost:", res.fun)

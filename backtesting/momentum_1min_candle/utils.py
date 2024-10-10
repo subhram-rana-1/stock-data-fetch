@@ -65,7 +65,7 @@ def get_optimised_param_dict(
     }
 
 
-def write_to_json_file(params_dict: dict):
-    with open("./backtesting/momentum_1min_candle/optimised_params.json", "w") as json_file:
+def write_to_json_file(params_dict: dict, file_path: str):
+    with open(file_path, "w") as json_file:
         json.dump(params_dict, json_file, indent=4)
 

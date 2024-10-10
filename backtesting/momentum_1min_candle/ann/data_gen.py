@@ -11,8 +11,8 @@ from stock_data_fetch.enums import MarketType
 
 class Input:
     market_type = MarketType.NIFTY
-    start_date = date(2024, 8, 1)
-    end_date = date(2024, 10, 10)
+    start_date = date(2024, 4, 10)
+    end_date = date(2024, 9, 30)
     dataset_file_path = './backtesting/momentum_1min_candle/ann/dataset.csv'
 
     dataset_input_headers = ['m1', 'sigma1', 'm2', 'sigma2', 'm3', 'sigma3', 'prie_slope',
