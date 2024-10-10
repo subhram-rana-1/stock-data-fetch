@@ -8,3 +8,8 @@ django-mysql==4.14.0
 numpy
 scikit-optimize
 numpy
+
+pandas
+tensorflow
+scikit-learn
+keras

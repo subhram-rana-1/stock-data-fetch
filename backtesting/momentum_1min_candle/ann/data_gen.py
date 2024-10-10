@@ -14,8 +14,11 @@ class Input:
     start_date = date(2024, 8, 1)
     end_date = date(2024, 10, 10)
     dataset_file_path = './backtesting/momentum_1min_candle/ann/dataset.csv'
-    dataset_headers = ['m1', 'sigma1', 'm2', 'sigma2', 'm3', 'sigma3', 'prie_slope', 'price_momentum',
-                       'last_candle_closing_price']
+
+    dataset_input_headers = ['m1', 'sigma1', 'm2', 'sigma2', 'm3', 'sigma3', 'prie_slope',
+                             'price_momentum', 'last_candle_closing_price']
+    dataset_output_headers = ['up_entry', 'no_entry', 'down_entry']
+    dataset_headers = dataset_input_headers + dataset_output_headers
 
     smooth_price_averaging_method = 'simple'
     smooth_price_period = 3
@@ -51,7 +54,7 @@ class AnnData:
             current_candle_closing_price: float,
 
             # output
-            direction: int,  # 1(up entry), 0(no entry), -1(down entry)
+            direction: List[int],  # 1(up entry), 0(no entry), -1(down entry)
     ):
         self.trend_line_slope_1 = trend_line_slope_1
         self.trend_line_variance_1 = trend_line_variance_1
@@ -75,7 +78,9 @@ class AnnData:
             self.price_slope,
             self.price_momentum,
             self.last_candle_closing_price,
-            self.direction,
+            self.direction[0],
+            self.direction[1],
+            self.direction[2],
         ]
 
 
@@ -99,14 +104,15 @@ def get_trade_entry_direction(
         price_list: List[PriceDataPerCandle],
         start_index: int,
         trade_hold_for_max_candles: int,
-) -> int:
-    # 0 -> no entry
-    # 1 -> up entry
-    # -1 -> down entry
+) -> List[int]:
+    # direction [up, no, down]
+    up_entry = [1, 0, 0]
+    no_entry = [0, 1, 0]
+    down_entry = [0, 0, 1]
 
     n = len(price_list)
     if start_index >= n:
-        return 0
+        return no_entry
 
     entry_price = price_list[start_index]['open']
     up_target = entry_price + Input.target_points
@@ -117,28 +123,30 @@ def get_trade_entry_direction(
     i = start_index
     while i < start_index + trade_hold_for_max_candles:
         if i >= n:
-            return 0
+            return no_entry
 
         if price_list[i]['high'] >= up_target:  # UP move simulation
             # check if SL was hit
             j = start_index
             while j <= i:
                 if price_list[j]['lo'] <= up_stoploss:
-                    return 0
+                    return no_entry
                 j += 1
 
-            return 1
+            return up_entry
         elif price_list[i]['lo'] <= down_target:  # DOWN move simulation
             # check if SL was hit
             j = start_index
             while j <= i:
                 if price_list[j]['high'] >= down_stoploss:
-                    return 0
+                    return no_entry
                 j += 1
+
+            return down_entry
 
         i += 1
 
-    return 0
+    return no_entry
 
 
 def get_ann_data_from_candlestick_data_for_the_day(
