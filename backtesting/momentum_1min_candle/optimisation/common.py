@@ -25,8 +25,6 @@ def get_nums(start, end, interval) -> List:
     return list(np.arange(start, end + interval, interval))
 
 
-
-
 class FixedInputs:
     """ We can change this manually and run optimisation
     and can observe which fixed input combination give
@@ -55,7 +53,7 @@ class FixedInputsForTestDataset:
     market = Market.NIFTY
     start_date = date(2024, 9, 1)
     start_time = time(9, 15, 0)
-    end_date = date(2024, 9, 24)
+    end_date = date(2024, 9, 30)
     end_time = time(15, 30, 0)
 
 
@@ -213,7 +211,7 @@ def preload_cache_for_stock_price():
         day += timedelta(days=1)
 
 
-def run_algo_on_test_data():
+def run_algo_on_test_data(optimised_params_json_file_path: str):
     back_test_input = BacktestingInput.from_json_file(
         market=FixedInputsForTestDataset.market,
         start_date=FixedInputsForTestDataset.start_date,
