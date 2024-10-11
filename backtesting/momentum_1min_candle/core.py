@@ -99,8 +99,7 @@ def get_daily_backtest_result(
 
 def fetch_and_transform_candlestick_price_data(
         market_type: MarketType,
-        from_date: date,
-        to_date: date,
+        day: date,
         from_time: time,
         to_time: time,
 
@@ -115,14 +114,17 @@ def fetch_and_transform_candlestick_price_data(
 ) -> PriceData:
     candlestick_resp: UpstoxCandlestickResponse = fetch_candlestick_data_from_upstox(
         market_type,
-        from_date,
-        to_date
+        day,
+        day,
     )
 
     price_data = PriceData(
         market_name=market_type,
         price_list=[candle.to_tick_by_tick_type_data() for candle in candlestick_resp.data.candles],
     )
+
+    if len(price_data['price_list']) != 375:
+        return None
 
     calculate_other_auxiliary_prices(
         price_data,
@@ -150,7 +152,6 @@ def get_daily_backtest_result_for_up_and_down(
     price_data: PriceData = fetch_and_transform_candlestick_price_data(
         Market(back_testing.market).to_price_app_market_type(),
         day,
-        day,
         start_time,
         end_time,
         chart_config.smooth_price_averaging_method,
@@ -160,6 +161,9 @@ def get_daily_backtest_result_for_up_and_down(
         chart_config.smooth_slope_period,
         chart_config.smooth_slope_ema_period,
     )
+
+    if price_data is None:
+        return None
 
     daily_backtest_results = []
     for direction in [Direction.UP, Direction.DOWN]:
@@ -225,16 +229,17 @@ def get_backtest_result(back_test_input: BacktestingInput) -> BacktestingResult:
             back_testing,
         )
 
-        for daily_backtest_result in daily_backtest_result_for_up_and_down:
-            back_testing_result.back_testing.winning_trade_count += \
-                daily_backtest_result.daily_back_testing.winning_trade_count
-            back_testing_result.back_testing.loosing_trade_count += \
-                daily_backtest_result.daily_back_testing.loosing_trade_count
-            back_testing_result.back_testing.trade_count += \
-                daily_backtest_result.daily_back_testing.trade_count
+        if daily_backtest_result_for_up_and_down is not None:
+            for daily_backtest_result in daily_backtest_result_for_up_and_down:
+                back_testing_result.back_testing.winning_trade_count += \
+                    daily_backtest_result.daily_back_testing.winning_trade_count
+                back_testing_result.back_testing.loosing_trade_count += \
+                    daily_backtest_result.daily_back_testing.loosing_trade_count
+                back_testing_result.back_testing.trade_count += \
+                    daily_backtest_result.daily_back_testing.trade_count
 
-        back_testing_result.daily_back_testing_results.\
-            extend(daily_backtest_result_for_up_and_down)
+            back_testing_result.daily_back_testing_results.\
+                extend(daily_backtest_result_for_up_and_down)
 
         day += timedelta(days=1)
 

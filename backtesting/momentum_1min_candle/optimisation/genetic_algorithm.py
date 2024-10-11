@@ -11,7 +11,7 @@ optimised_params_json_file_path = "backtesting/momentum_1min_candle/optimised_pa
 class GAParams:
     num_generations = 100
     sol_per_pop = 50
-    num_parents_mating = 30  # [sol_per_pop * 50% ... sol_per_pop * 80%] --> trade oif b/w exploration VS exploitation
+    num_parents_mating = 35  # [sol_per_pop * 50% ... sol_per_pop * 80%] --> trade oif b/w exploration VS exploitation
     num_genes = common.total_param_count
     parent_selection_type = "rank"
     crossover_type = "uniform"
@@ -77,12 +77,17 @@ def main():
     best_chromosome = ga_instance.best_solution()
     t2 = datetime.now()
 
+    params_array = best_chromosome[0]
+    best_params = params_array.tolist()
+
     time_difference = t2 - t1
     total_seconds = int(time_difference.total_seconds())
     minutes = total_seconds // 60
     seconds = total_seconds % 60
     print(f"Completed in {minutes} minutes and {seconds} seconds\n"
-          f"best params: {best_chromosome}")
+          f"best params: {best_params}")
+
+
 
     optimised_params_dict = get_optimised_param_dict(
         market=FixedInputs.market,
@@ -93,7 +98,7 @@ def main():
         stoploss_type=FixedInputs.stoploss_type,
         profit_target_points=FixedInputs.profit_target_points,
         stoploss_points=FixedInputs.stoploss_points,
-        params=best_chromosome,
+        params=best_params,
     )
 
     write_to_json_file(optimised_params_dict, f'./{optimised_params_json_file_path}')

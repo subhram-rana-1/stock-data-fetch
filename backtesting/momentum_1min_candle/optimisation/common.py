@@ -4,10 +4,7 @@ from backtesting.entities import BacktestingInput, ChartConfig, \
     TradeConfig, ExitCondition, EntryCondition, BacktestingResult
 from backtesting.enums import Market
 from typing import List
-from skopt import gp_minimize
 import numpy as np
-
-from backtesting.momentum_1min_candle.utils import get_optimised_param_dict, write_to_json_file
 from backtesting.momentum_1min_candle import core
 from price_app.handlers import fetch_price_from_database
 
@@ -33,7 +30,7 @@ class FixedInputs:
     market = Market.NIFTY
     start_date = date(2024, 8, 1)
     start_time = time(9, 15, 0)
-    end_date = date(2024, 8, 30)
+    end_date = date(2024, 8, 31)
     end_time = time(15, 30, 0)
     min_entry_time = time(9, 20)
 
@@ -51,9 +48,9 @@ class FixedInputsForTestDataset:
     the best result"""
 
     market = Market.NIFTY
-    start_date = date(2024, 9, 1)
+    start_date = date(2024, 4, 1)
     start_time = time(9, 15, 0)
-    end_date = date(2024, 9, 30)
+    end_date = date(2024, 7, 31)
     end_time = time(15, 30, 0)
 
 

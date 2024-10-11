@@ -15,7 +15,13 @@ def calculate_ema(
     # first ema = sma
     sum = 0
     for i in range(period):
-        sum += input_list[i]
+        try:
+            sum += input_list[i]
+        except Exception as e:
+            print('input_list: ', len(input_list))
+            print('period: ', period)
+            raise
+
     ema_list.append(sum / period)
 
     # calculate rest of all
