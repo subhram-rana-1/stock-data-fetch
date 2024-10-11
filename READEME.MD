@@ -17,6 +17,7 @@
 * Run momentum 1 min candlesticks backtesting: `chmod +x ./startup_scripts/backtesting/momentum_1min_candle.sh && ./startup_scripts/backtesting/momentum_1min_candle.sh`
 * Run optimisation for momentum_1min_candle by "bayesian scikit": `chmod +x ./startup_scripts/backtesting/momentum_1min_candlestick_bayesian_optimisation.sh && ./startup_scripts/backtesting/momentum_1min_candlestick_bayesian_optimisation.sh`
 * Run optimisation for momentum_1min_candle by "differential evolution": `chmod +x ./startup_scripts/backtesting/momentum_1min_candlestick_differential_evolution.sh && ./startup_scripts/backtesting/momentum_1min_candlestick_differential_evolution.sh`
+* Run optimisation for momentum_1min_candle by "Genetic Algorithm": `chmod +x ./startup_scripts/backtesting/momentum_1min_candlestick_GA.sh && ./startup_scripts/backtesting/momentum_1min_candlestick_GA.sh`
 * Run algo on test data for momentum_1min_candle: `chmod +x ./startup_scripts/backtesting/momentum_1min_candle_test_data.sh && ./startup_scripts/backtesting/momentum_1min_candle_test_data.sh`
 * generate ANN data for momentum_1min_candle: `chmod +x ./startup_scripts/backtesting/momentum_1min_candle_ann_data_gen.sh && ./startup_scripts/backtesting/momentum_1min_candle_ann_data_gen.sh`
 * Run ANN data for momentum_1min_candle: `chmod +x ./startup_scripts/backtesting/momentum_1min_candle_ann.sh && ./startup_scripts/backtesting/momentum_1min_candle_ann.sh`

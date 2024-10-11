@@ -1,0 +1,22 @@
+{
+  "weekly": false,
+  "segment": "NSE_FO",
+  "name": "NIFTY",
+  "exchange": "NSE",
+  "expiry": 1730399399000,
+  "instrument_type": "CE",
+  "asset_symbol": "NIFTY",
+  "underlying_symbol": "NIFTY",
+  "instrument_key": "NSE_FO|62934",
+  "lot_size": 25,
+  "freeze_quantity": 1800,
+  "exchange_token": "62934",
+  "minimum_lot": 25,
+  "asset_key": "NSE_INDEX|Nifty 50",
+  "underlying_key": "NSE_INDEX|Nifty 50",
+  "tick_size": 5,
+  "asset_type": "INDEX",
+  "underlying_type": "INDEX",
+  "trading_symbol": "NIFTY 26750 CE 31 OCT 24",
+  "strike_price": 26750
+}

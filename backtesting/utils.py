@@ -1,3 +1,4 @@
+import traceback
 from typing import List
 import statistics
 from backtesting.entities import LinearRegressionLine
@@ -49,14 +50,14 @@ def get_linear_regression_result_util(nums: List[float]) -> LinearRegressionLine
 
 
 def get_linear_regression_result(nums: List[float], gap: int = 1) -> LinearRegressionLine:
+    if len(nums) == 0:
+        traceback.print_exc()
+        raise Exception(f"nums[] is empty in regression")
+
     modified_nums = []
     i = 0
     while i < len(nums):
         modified_nums.append(nums[i])
         i += gap
-
-    if len(modified_nums) == 1 and modified_nums[0] == 1:
-        print('if len(modified_nums) == 1 and modified_nums[0] == 1:')
-        print(f'nums: {nums}')
 
     return get_linear_regression_result_util(modified_nums)

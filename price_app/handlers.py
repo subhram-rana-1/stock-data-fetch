@@ -206,14 +206,19 @@ def fetch_price_data(
 @csrf_exempt
 def fetch_price(request: http.HttpRequest):
     market_name = MarketType(request.GET['market'])
-
     from_date = datetime.strptime(request.GET['from_date'], date_format_string).date()
     to_date = datetime.strptime(request.GET['to_date'], date_format_string).date()
-
-
-
     from_time = datetime.strptime(request.GET['from_time'], time_format_string).time()
     to_time = datetime.strptime(request.GET['to_time'], time_format_string).time()
+
+    info = {
+        'market_name': market_name,
+        'from_date': from_date,
+        'to_date': to_date,
+        'from_time': from_time,
+        'to_time': to_time,
+    }
+    print(f'fetch price api: {info}')
 
     smooth_price_period = configs.smooth_price_period
     smooth_price_ema_period = configs.smooth_price_ema_period

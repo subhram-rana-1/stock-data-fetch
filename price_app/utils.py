@@ -1,3 +1,4 @@
+import traceback
 from typing import List
 
 import math
@@ -34,6 +35,10 @@ def calculate_sma(
         input_list: List[float],
         period: int,
 ) -> List[float]:
+    if period < 1:
+        traceback.print_exc()
+        raise Exception(f"period can't be < 1, period: {period}")
+
     sma_list = []
 
     sum = 0

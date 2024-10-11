@@ -2,15 +2,15 @@ from backtesting.entities import TradeConfig, EntryCondition, BacktestingInput, 
     BacktestingResult
 from backtesting.enums import Market
 from backtesting.momentum_1min_candle import core
-from datetime import time, date
+from datetime import time, date, datetime
 
 
 def main():
     back_test_input = BacktestingInput(
         market=Market.NIFTY,
-        start_date=date(2024, 9, 24),
+        start_date=date(2024, 5, 1),
         start_time=time(9, 15, 0),
-        end_date=date(2024, 9, 24),
+        end_date=date(2024, 9, 30),
         end_time=time(14, 45, 0),
         chart_config=ChartConfig(  # todo
             smooth_price_averaging_method='simple',
@@ -58,6 +58,14 @@ def main():
         ),
     )
 
+    t1 = datetime.now()
+
     backtest_result: BacktestingResult = core.get_backtest_result(back_test_input)
+    t2 = datetime.now()
+    print(f'without caching took: {t2-t1} seconds')
+
+    backtest_result: BacktestingResult = core.get_backtest_result(back_test_input)
+    t3 = datetime.now()
+    print(f'with caching took: {t3-t2} seconds')
 
     backtest_result.save_to_db()

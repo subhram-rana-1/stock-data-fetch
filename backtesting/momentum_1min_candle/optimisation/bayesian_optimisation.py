@@ -1,13 +1,37 @@
-import os
 from skopt import gp_minimize
-from backtesting.entities import BacktestingInput, BacktestingResult
-from backtesting.momentum_1min_candle import core
-from backtesting.momentum_1min_candle.optimisation.common import FixedInputsForTestDataset, FixedInputs, \
-    preload_cache_for_stock_price, cost_function, search_space
-from backtesting.momentum_1min_candle.utils import get_optimised_param_dict, write_to_json_file
 
+from backtesting.momentum_1min_candle.optimisation import common
+from backtesting.momentum_1min_candle.optimisation.common import FixedInputs, \
+    preload_cache_for_stock_price, cost_function
+from backtesting.momentum_1min_candle.utils import get_optimised_param_dict, write_to_json_file
+from skopt.space import Categorical
 
 optimised_params_json_file_path = "backtesting/momentum_1min_candle/optimised_params_bayesian.json"
+
+search_space = [
+    Categorical(common.search_range_chat_config_smooth_price_periods, name='chat_config_smooth_price_periods'),
+    Categorical(common.search_range_chat_config_smooth_price_ema_periods, name='chat_config_smooth_price_ema_periods'),
+    Categorical(common.search_range_chat_config_smooth_slope_periods, name='chat_config_smooth_slope_periods'),
+    Categorical(common.search_range_chat_config_smooth_slope_ema_periods, name='chat_config_smooth_slope_ema_periods'),
+    Categorical(common.search_range_trade_config_trend_line_time_periods_in_sec, name='trade_config_trend_line_time_periods_in_sec'),
+    Categorical(common.search_range_trade_config_entry_condition_1_max_variance, name='trade_config_entry_condition_1_max_variance'),
+    Categorical(common.search_range_trade_config_entry_condition_1_min_abs_trend_slope, name='trade_config_entry_condition_1_min_abs_trend_slope'),
+    Categorical(common.search_range_trade_config_entry_condition_1_min_abs_price_slope, name='trade_config_entry_condition_1_min_abs_price_slope'),
+    Categorical(common.search_range_trade_config_entry_condition_1_min_abs_price_momentum, name='trade_config_entry_condition_1_min_abs_price_momentum'),
+    Categorical(common.search_range_trade_config_entry_condition_2_max_variance, name='trade_config_entry_condition_2_max_variance'),
+    Categorical(common.search_range_trade_config_entry_condition_2_min_abs_trend_slope, name='trade_config_entry_condition_2_min_abs_trend_slope'),
+    Categorical(common.search_range_trade_config_entry_condition_2_min_abs_price_slope, name='trade_config_entry_condition_2_min_abs_price_slope'),
+    Categorical(common.search_range_trade_config_entry_condition_2_min_abs_price_momentum, name='trade_config_entry_condition_2_min_abs_price_momentum'),
+    Categorical(common.search_range_trade_config_entry_condition_3_max_variance, name='trade_config_entry_condition_3_max_variance'),
+    Categorical(common.search_range_trade_config_entry_condition_3_min_abs_trend_slope, name='trade_config_entry_condition_3_min_abs_trend_slope'),
+    Categorical(common.search_range_trade_config_entry_condition_3_min_abs_price_slope, name='trade_config_entry_condition_3_min_abs_price_slope'),
+    Categorical(common.search_range_trade_config_entry_condition_3_min_abs_price_momentum, name='trade_config_entry_condition_3_min_abs_price_momentum'),
+    Categorical(common.search_range_trade_config_entry_condition_4_max_variance, name='trade_config_entry_condition_4_max_variance'),
+    Categorical(common.search_range_trade_config_entry_condition_4_min_abs_trend_slope, name='trade_config_entry_condition_4_min_abs_trend_slope'),
+    Categorical(common.search_range_trade_config_entry_condition_4_min_abs_price_slope, name='trade_config_entry_condition_4_min_abs_price_slope'),
+    Categorical(common.search_range_trade_config_entry_condition_4_min_abs_price_momentum, name='trade_config_entry_condition_4_min_abs_price_momentum'),
+]
+
 
 def main():
     preload_cache_for_stock_price()
