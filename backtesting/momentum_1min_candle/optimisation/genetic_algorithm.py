@@ -9,36 +9,36 @@ optimised_params_json_file_path = "backtesting/momentum_1min_candle/optimised_pa
 
 
 class GAParams:
-    num_generations = 100
-    sol_per_pop = 50
-    num_parents_mating = 35  # [sol_per_pop * 50% ... sol_per_pop * 80%] --> trade oif b/w exploration VS exploitation
+    num_generations = 500
+    sol_per_pop = 10000
+    num_parents_mating = 25  # [sol_per_pop * 50% ... sol_per_pop * 80%] --> trade oif b/w exploration VS exploitation
     num_genes = common.total_param_count
     parent_selection_type = "rank"
     crossover_type = "uniform"
     crossover_probability = 0.8
     mutation_type = "random"
-    mutation_probability = 0.1
+    mutation_probability = 0.2
     parallel_processing = ("thread", 8)
     gene_space = [
-        {'low': 5, 'high': 30, 'step': 3},  # chat_config_smooth_price_periods
-        {'low': 20, 'high': 200, 'step': 15},  # chat_config_smooth_price_ema_periods
-        {'low': 5, 'high': 50, 'step': 5},  # chat_config_smooth_slope_periods
+        {'low': 2, 'high': 30, 'step': 2},  # chat_config_smooth_price_periods
+        {'low': 10, 'high': 200, 'step': 5},  # chat_config_smooth_price_ema_periods
+        {'low': 2, 'high': 30, 'step': 2},  # chat_config_smooth_slope_periods
         {'low': 5, 'high': 50, 'step': 5},  # chat_config_smooth_slope_ema_periods
-        {'low': 60, 'high': 360, 'step': 20},  # trade_config_trend_line_time_periods_in_sec
+        {'low': 10, 'high': 200, 'step': 5},  # trade_config_trend_line_time_periods_in_sec
         {'low': 0.5, 'high': 10, 'step': 0.5},  # trade_config_entry_condition_1_max_variance
-        {'low': 0, 'high': 0.6, 'step': 0.025},  # trade_config_entry_condition_1_min_abs_trend_slope
+        {'low': 0, 'high': 2, 'step': 0.025},  # trade_config_entry_condition_1_min_abs_trend_slope
         {'low': 0.1, 'high': 30, 'step': 0.1},  # trade_config_entry_condition_1_min_abs_price_slope
         {'low': 0.01, 'high': 10, 'step': 0.02},  # trade_config_entry_condition_1_min_abs_price_momentum
         {'low': 0.5, 'high': 10, 'step': 0.5},  # trade_config_entry_condition_2_max_variance
-        {'low': 0, 'high': 0.6, 'step': 0.025},  # trade_config_entry_condition_2_min_abs_trend_slope
+        {'low': 0, 'high': 2, 'step': 0.025},  # trade_config_entry_condition_2_min_abs_trend_slope
         {'low': 0.1, 'high': 30, 'step': 0.1},  # trade_config_entry_condition_2_min_abs_price_slope
         {'low': 0.01, 'high': 10, 'step': 0.02},  # trade_config_entry_condition_2_min_abs_price_momentum
         {'low': 0.5, 'high': 10, 'step': 0.5},  # trade_config_entry_condition_3_max_variance
-        {'low': 0, 'high': 0.6, 'step': 0.025},  # trade_config_entry_condition_3_min_abs_trend_slope
+        {'low': 0, 'high': 2, 'step': 0.025},  # trade_config_entry_condition_3_min_abs_trend_slope
         {'low': 0.1, 'high': 30, 'step': 0.1},  # trade_config_entry_condition_3_min_abs_price_slope
         {'low': 0.01, 'high': 10, 'step': 0.02},  # trade_config_entry_condition_3_min_abs_price_momentum
         {'low': 0.5, 'high': 10, 'step': 0.5},  # trade_config_entry_condition_4_max_variance
-        {'low': 0, 'high': 0.6, 'step': 0.025},  # trade_config_entry_condition_4_min_abs_trend_slope
+        {'low': 0, 'high': 2, 'step': 0.025},  # trade_config_entry_condition_4_min_abs_trend_slope
         {'low': 0.1, 'high': 30, 'step': 0.1},  # trade_config_entry_condition_4_min_abs_price_slope
         {'low': 0.01, 'high': 10, 'step': 0.02},  # trade_config_entry_condition_4_min_abs_price_momentum
     ]
