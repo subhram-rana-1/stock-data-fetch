@@ -55,14 +55,14 @@
 
     <script>
         // Set default dates and times
-        const today = new Date();
+        const today = new Date(2024, 8, 25);
         // const yesterday = new Date(today);
         // yesterday.setDate(today.getDate() - 1);
         document.getElementById("from_date").value = today.toISOString().split('T')[0];
         document.getElementById("to_date").value = today.toISOString().split('T')[0];
 
         document.getElementById("from_time").value = "09:15";
-        document.getElementById("to_time").value = "15:30";
+        document.getElementById("to_time").value = "10:30";
 
         async function fetchPriceData(market, fromDate, toDate, fromTime, toTime) {
             const url = "http://localhost:8888/api/price";
