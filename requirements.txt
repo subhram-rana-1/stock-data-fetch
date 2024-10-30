@@ -1,7 +1,6 @@
 Django==4
 kiteconnect
 pytz
-mysqlclient
 django-cors-headers
 openpyxl
 django-mysql==4.14.0
@@ -14,3 +13,5 @@ pandas
 tensorflow
 scikit-learn
 keras
+mysqlclient
+PyMySQL

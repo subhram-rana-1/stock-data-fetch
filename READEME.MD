@@ -8,6 +8,9 @@
 * run momentum analysis script: `python manage.py run_momentum_analysis_script`
 
 # Backtesting
+## Candlesticks
+* Run candlesticks bigbar backtesting: `chmod +x ./startup_scripts/backtesting/candlestick_bigbar.sh && ./startup_scripts/backtesting/candlestick_bigbar.sh`
+
 ## Momentum v1
 * Run momentum v1 backtesting: `chmod +x ./startup_scripts/backtesting/momentum_v1.sh && ./startup_scripts/backtesting/momentum_v1.sh`
 * Run optimisation for momentum_v1 by "grip search": `chmod +x ./startup_scripts/backtesting/optimisation_grid_search.sh && ./startup_scripts/backtesting/optimisation_grid_search.sh`
