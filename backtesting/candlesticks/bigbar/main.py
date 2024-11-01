@@ -7,14 +7,14 @@ from price_app.constants import MARKET_START_TIME, MARKET_CLOSE_TIME
 
 
 class Config:
-    start_date = date(2024, 9, 18)
-    end_date = date(2024, 9, 18)
+    start_date = date(2024, 9, 20)
+    end_date = date(2024, 9, 20)
     time_slots = [
-        [time(7, 0), time(10,  30)]
+        [time(11, 30), time(15,  30)]
     ]
     candle_time_length_in_sec = 20
-    big_bar_length = 5
-    fixed_stoploss = 5
+    big_bar_length = 8
+    fixed_stoploss = 12
     fixed_target = 10
 
 
@@ -30,13 +30,15 @@ def perform_strategy_for_today_for_timeslot(
     while i < n and candlesticks[i].time < start_time:
         i += 1
 
-    print(f'entry candle start time: {candlesticks[i].time}')
-
     # simulate trading
     while i < n-1:
         candlestick = candlesticks[i]
+        if candlestick.time >= end_time:
+            break
 
         if candlestick.body >= Config.big_bar_length:
+            print(f'LONG: candlestick.body >= Config.big_bar_length: {candlestick.to_dict()}')
+
             # take long position
             i += 1
             candlestick = candlesticks[i]
@@ -69,6 +71,8 @@ def perform_strategy_for_today_for_timeslot(
             trades.append(trade)
             i = j + 1
         elif candlestick.body <= -1 * Config.big_bar_length:
+            print(f'SHORT: candlestick.body >= Config.big_bar_length: {candlestick.to_dict()}')
+
             # take short position
             i += 1
             candlestick = candlesticks[i]
@@ -112,17 +116,11 @@ def perform_strategy_for_today(date: date) -> DailyTrading:
         datetime.combine(date, MARKET_CLOSE_TIME),
     )
 
-    print(f'first tick: {ticks[0].timestamp}')
-    print(f'last tick: {ticks[len(ticks)-1].timestamp}')
-
     candlesticks: List[Candlestick] = \
         get_candlesticks_from_tick_price(ticks, Config.candle_time_length_in_sec)
 
-    # print(f'candlesticks: {[candlestick.to_dict() for candlestick in candlesticks]}')
-
     daily_trading = DailyTrading(date)
     for time_slot in Config.time_slots:
-        print(f'calculating for slot: {time_slot}')
         trades: List[Trade] = perform_strategy_for_today_for_timeslot(candlesticks, time_slot[0], time_slot[1])
         daily_trading.append_trades(trades)
 
@@ -145,9 +143,13 @@ def perform_strategy() -> List[DailyTrading]:
 def main():
     daily_tradings: List[DailyTrading] = perform_strategy()
 
+    s = 0
     for daily_trading in daily_tradings:
         for trade in daily_trading.trades:
             print(f'{trade.date} <--> {trade.entry_time} {trade.entry_price} <--> {trade.exit_time} {trade.exit_price} <--> {trade.gain}')
+            s += trade.gain
+
+    print(f'tot gain: {s}')
 
 
 if __name__ == '__main__':

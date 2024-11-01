@@ -1,14 +1,14 @@
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from typing import List
 
 
 class Tick:
     def __init__(
             self,
-            timestamp: datetime,
+            timestamp: datetime,  # input time stamp must be in UTC
             price: float
     ):
-        self.timestamp = timestamp
+        self.timestamp = timestamp + timedelta(hours=5, minutes=30)
         self.price = price
 
 
